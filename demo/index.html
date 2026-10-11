@@ -283,6 +283,9 @@
   .marker::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 0 2px var(--panel), 0 1px 3px rgba(0,0,0,0.25); transition: transform .12s; }
   .marker:hover::before { transform: scale(1.3); }
   .times { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .credit { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 11px; color: var(--text-3); }
+  .credit a { color: inherit; text-decoration: underline; text-decoration-color: var(--fill-2); }
+  .credit a:hover { color: var(--text-2); }
 
   /* key moments */
   .moments { display: flex; flex-direction: column; margin: 0 -8px; }
@@ -462,7 +465,7 @@
 // ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
-const STORAGE_KEY = 'memos-demo-v2';
+const STORAGE_KEY = 'memos-demo-v3';
 
 const defaultTags = [
   { id: 'song',      name: 'Song idea',    color: '#af52de' },
@@ -470,45 +473,51 @@ const defaultTags = [
   { id: 'note',      name: 'Note to self', color: '#ff9500' },
   { id: 'interview', name: 'Interview',    color: '#5ac8fa' },
   { id: 'rehearsal', name: 'Rehearsal',    color: '#ff2d55' },
+  { id: 'review',    name: 'Game review',  color: '#34c759' },
 ];
 
 const daysAgo = (n, h = 10, m = 0) => { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(h, m, 0, 0); return d.toISOString(); };
 
+const tts = { text: 'Voice generated with macOS text-to-speech for this demo' };
+const commons = (title, author, license, url) => ({ text: `“${title}” · ${author} · ${license}`, url });
+
 const seedMemos = [
   {
-    id: 'm1', title: '1:1 with Sam — career growth and Q4 goals',
-    tags: ['meeting'], duration: 2712, createdAt: daysAgo(0, 14, 5),
-    summary: 'Sam wants to move toward a tech-lead role. You agreed to put together a growth plan and find a project they can own. Also flagged that the design review process is slowing their team down.',
+    id: 'm1', title: '1:1 with Sam — tech-lead path and the notifications rewrite',
+    tags: ['meeting'], src: 'audio/one-on-one-sam.mp3', duration: 56.7, createdAt: daysAgo(0, 14, 5), credit: tts,
+    summary: 'Sam wants to move toward a tech-lead role, and you agreed they will own the notifications rewrite. You owe them a growth plan, and want to raise the slow design-review process with Priya.',
     moments: [
-      { t: 190,  label: 'Sam brings up wanting the tech-lead path' },
-      { t: 1120, label: 'Decision: Sam owns the notifications rewrite' },
-      { t: 2465, label: 'Design review bottleneck, worth raising with Priya' },
+      { t: 4,  label: 'Sam brings up the tech-lead path' },
+      { t: 22, label: 'Decision: Sam owns the notifications rewrite' },
+      { t: 39, label: 'Design review is slowing their team down' },
     ],
     items: [
       { id: 'i1', kind: 'action', text: 'Draft a growth plan for Sam before next 1:1', done: false },
-      { id: 'i2', kind: 'action', text: 'Ask Priya about streamlining design review', done: false },
+      { id: 'i2', kind: 'action', text: 'Ask Priya about a lighter design-review path', done: false },
     ],
   },
   {
-    id: 'm2', title: 'Bridge idea in D minor',
-    tags: ['song'], duration: 48, createdAt: daysAgo(0, 23, 40),
-    summary: 'A descending bridge melody hummed over an implied D minor to B-flat progression. You said it might work under the chorus of the song you were working on last week.',
+    id: 'm2', title: 'Hummed melody — no words',
+    tags: ['song'], src: 'audio/humming-idea.mp3', duration: 20.1, createdAt: daysAgo(0, 23, 40),
+    credit: commons('Woman humming a nondescript tune', 'PSsoundproject', 'CC0', 'https://commons.wikimedia.org/wiki/File:Woman_humming_a_nondescript_tune.wav'),
+    summary: 'Twenty seconds of humming with no spoken words, so there is nothing to transcribe. Give it a listen and decide whether it goes anywhere.',
     moments: [
-      { t: 6,  label: 'The descending line starts' },
-      { t: 31, label: '“Try this under the chorus”' },
+      { t: 0, label: 'Melody starts' },
+      { t: 8, label: 'The climax: the melody peaks' },
     ],
     items: [
-      { id: 'i3', kind: 'revisit', text: 'Try this bridge under last week’s chorus', done: false },
+      { id: 'i3', kind: 'revisit', text: 'Untitled idea: listen and decide whether to develop it', done: false },
     ],
   },
   {
     id: 'm3', title: 'Standup debrief — API launch slipping',
-    tags: ['meeting'], duration: 754, createdAt: daysAgo(1, 9, 32),
-    summary: 'The API launch is likely to slip a week because of auth edge cases. You need to tell marketing before Thursday and decide whether to cut the batch endpoint from v1.',
+    tags: ['meeting'], src: 'audio/standup-debrief.mp3', duration: 45.0, createdAt: daysAgo(1, 9, 32), credit: tts,
+    summary: 'The API launch will probably slip a week: token refresh fails for multi-workspace accounts. You need to warn marketing before Thursday and decide whether to cut the half-done batch endpoint from v1.',
     moments: [
-      { t: 95,  label: 'Why the auth edge cases are blocking' },
-      { t: 410, label: 'Decision point on cutting batch endpoint' },
-      { t: 690, label: 'Reminder: tell marketing before Thursday' },
+      { t: 0,  label: 'Launch is probably slipping a week' },
+      { t: 6,  label: 'Why the auth edge cases are blocking' },
+      { t: 17, label: 'Decision point: cut the batch endpoint?' },
+      { t: 30, label: 'Reminder: tell marketing before Thursday' },
     ],
     items: [
       { id: 'i4', kind: 'action', text: 'Tell marketing the launch may slip a week', done: false },
@@ -517,32 +526,71 @@ const seedMemos = [
     ],
   },
   {
-    id: 'm4', title: 'Interview with Priya — onboarding friction',
-    tags: ['interview'], duration: 1931, createdAt: daysAgo(2, 15, 0),
-    summary: 'Priya dropped off during account setup twice because the verification email landed in spam. She said the empty dashboard after signup made her unsure it had worked.',
+    id: 'm4', title: 'Mike Rogoway on Oregon’s pandemic economy',
+    tags: ['interview'], src: 'audio/portland-conversation-rogoway.mp3', duration: 1793.8, createdAt: daysAgo(2, 15, 0),
+    credit: commons('Mike Rogoway – June 3, 2020 Portland Conversations', 'PDXConvo', 'CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:Mike_Rogoway_-_June_3,_2020_Portland_Conversations_(IA_pdx-20200603-mike-rogoway).mp3'),
+    summary: 'A 30-minute conversation with Oregonian tech-business reporter Mike Rogoway. The state’s 1990s unemployment system buckled under 450,000 claims. He expects a quick bounce and then a slow “reverse square root” recovery that depends on whether people feel safe spending again.',
     moments: [
-      { t: 240,  label: '“I thought it just didn’t work”' },
-      { t: 870,  label: 'Verification email went to spam, twice' },
-      { t: 1540, label: 'What she expected to see after signup' },
+      { t: 46,   label: 'The Employment Department story' },
+      { t: 113,  label: 'A 1990s COBOL system that can’t keep up' },
+      { t: 337,  label: '“Not uniquely Oregon, but distinctly Oregon”' },
+      { t: 529,  label: 'The “reverse square root” recovery' },
+      { t: 976,  label: 'The economy is open, but do people feel safe?' },
+      { t: 1483, label: 'Food-plant CEO: “it came up and bit us”' },
     ],
     items: [
-      { id: 'i7', kind: 'revisit', text: 'Pull quotes for the onboarding synthesis', done: false },
+      { id: 'i7', kind: 'revisit', text: 'Pull quotes on the claims backlog and consumer confidence', done: false },
+      { id: 'i11', kind: 'action', text: 'Find the state economist’s quarterly forecast he cites', done: false },
     ],
   },
   {
-    id: 'm5', title: 'Chorus melody, second pass',
-    tags: ['song', 'rehearsal'], duration: 72, createdAt: daysAgo(4, 21, 15),
-    summary: 'A brighter take on the chorus melody with a lift on the last line. You sounded happy with it and said it was ready to bring to rehearsal.',
+    id: 'm8', title: 'Nintendo’s Arakawa on the Game Boy and regional taste',
+    tags: ['interview', 'review'], src: 'audio/nintendo-gameboy-interview.mp3', duration: 227.0, createdAt: daysAgo(3, 20, 10),
+    credit: commons('Minoru Arakawa – Nintendo – Gameboy, interviewed by Maximilian Schönherr 1990', 'Maximilian Schönherr', 'CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:Minoru_Arakawa_%E2%80%93_Nintendo_%E2%80%93_Gameboy,_interviewed_by_Maximilian_Sch%C3%B6nherr_1990.mp3'),
+    summary: 'A 1990 interview with Nintendo of America’s Minoru Arakawa. The Game Boy took three or four years and a team of 40–50. Some Japanese games are dropped for Western markets as too aggressive, and manufacturing stays in Japan for quality.',
     moments: [
-      { t: 12, label: 'The lift on the last line' },
+      { t: 0,   label: 'How long the Game Boy took to build' },
+      { t: 80,  label: 'Which games don’t travel between markets' },
+      { t: 157, label: 'Dropping games as “too aggressive”' },
+      { t: 198, label: 'Why it’s made 100% in Japan' },
     ],
     items: [
-      { id: 'i8', kind: 'revisit', text: 'Bring to rehearsal', done: true },
+      { id: 'i13', kind: 'revisit', text: 'Use the “too aggressive for West Germany” bit in the review draft', done: false },
+      { id: 'i14', kind: 'action', text: 'Fact-check the 40–50 person team size before quoting it', done: false },
+    ],
+  },
+  {
+    id: 'm5', title: 'Choir voicing reference — “Eternal Father”',
+    tags: ['song', 'rehearsal'], src: 'audio/a-cappella-chorus.mp3', duration: 61.6, createdAt: daysAgo(4, 21, 15),
+    credit: commons('Eternal Father, Strong to Save (A cappella chorus with words)', 'U.S. Navy Band', 'Public domain', 'https://commons.wikimedia.org/wiki/File:Eternal_Father,_Strong_to_Save_(A_cappella_chorus_with_words).mp3'),
+    summary: 'An a cappella chorus of the hymn “Eternal Father, Strong to Save”, kept as a reference for stacking harmonies. The swell on “O hear us when we cry to thee” is the part to study.',
+    moments: [
+      { t: 0,  label: 'First line' },
+      { t: 29, label: '“O hear us when we cry to thee”: the swell' },
+      { t: 48, label: 'The final cadence' },
+    ],
+    items: [
+      { id: 'i8', kind: 'revisit', text: 'Bring this voicing to rehearsal', done: true },
+    ],
+  },
+  {
+    id: 'm9', title: 'Mike Peters (The Alarm) on emotion over politics',
+    tags: ['interview'], src: 'audio/mike-peters-interview.mp3', duration: 128.2, createdAt: daysAgo(5, 11, 30),
+    credit: commons('Mike Peters on Politics and Emotion (Interview 1984)', 'Maximilian Schönherr', 'CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:Mike_Peters_on_Politics_and_Emotion_(Interview_1984).mp3'),
+    summary: 'The Alarm’s Mike Peters in 1984: the band is emotional, not political, and wants to get people talking instead of digging in. He calls their song “March” autobiographical, about leaving an office job where looks mattered more than the work.',
+    moments: [
+      { t: 4,   label: '“Politicians have got no emotion”' },
+      { t: 36,  label: 'Getting people discussing and talking' },
+      { t: 86,  label: '“March” is autobiographical' },
+      { t: 102, label: 'The office job where looks mattered' },
+    ],
+    items: [
+      { id: 'i15', kind: 'revisit', text: 'Pull quotes for the music-and-politics piece', done: true },
     ],
   },
   {
     id: 'm6', title: 'Grocery run and call Mom back',
-    tags: ['note'], duration: 19, createdAt: daysAgo(5, 18, 2),
+    tags: ['note'], src: 'audio/grocery-note.mp3', duration: 8.0, createdAt: daysAgo(5, 18, 2), credit: tts,
     summary: 'Eggs, oat milk, basil. Call Mom back about the weekend.',
     moments: [],
     items: [
@@ -551,7 +599,7 @@ const seedMemos = [
   },
   {
     id: 'm7', title: 'Parked on level 3, near the elevator',
-    tags: ['note'], duration: 6, createdAt: daysAgo(6, 8, 45),
+    tags: ['note'], src: 'audio/parking-note.mp3', duration: 3.0, createdAt: daysAgo(6, 8, 45), credit: tts,
     summary: 'Car is on level 3 by the elevator.',
     moments: [],
     items: [],
@@ -565,7 +613,7 @@ function load() {
 }
 function save() {
   try {
-    const copy = { ...state, memos: state.memos.filter(m => !m.processing).map(({ src, ...m }) => m) };
+    const copy = { ...state, memos: state.memos.filter(m => !m.processing).map(m => m.src?.startsWith('blob:') ? (({ src, ...rest }) => rest)(m) : m) };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
   } catch {}
 }
@@ -635,7 +683,7 @@ function toast(msg) {
 }
 
 // ---------------------------------------------------------------------------
-// Player (real <audio> for imported files, simulated for seed memos)
+// Player (real <audio> when a memo has a src, simulated otherwise)
 // ---------------------------------------------------------------------------
 const player = {
   memoId: null, audio: null, simT: 0, simTimer: null, playing: false,
@@ -658,7 +706,14 @@ const player = {
     }
     renderPlayer();
   },
-  seek(t) { t = Math.max(0, Math.min(t, this.duration())); if (this.audio) this.audio.currentTime = t; else this.simT = t; renderPlayer(); },
+  seek(t) {
+    t = Math.max(0, Math.min(t, this.duration()));
+    const a = this.audio;
+    // A seek issued before metadata arrives is dropped by the browser, so replay it once it does.
+    if (a && a.readyState < 1) a.addEventListener('loadedmetadata', () => { a.currentTime = t; }, { once: true });
+    if (a) a.currentTime = t; else this.simT = t;
+    renderPlayer();
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -890,6 +945,7 @@ function renderDetail() {
           <div class="times"><span id="cur">0:00</span><span id="rem">−${fmt(m.duration)}</span></div>
         </div>
       </div>
+      ${m.credit ? `<div class="credit">Audio: ${m.credit.url ? `<a href="${esc(m.credit.url)}" target="_blank" rel="noopener">${esc(m.credit.text)}</a>` : esc(m.credit.text)}</div>` : ''}
     </div>
 
     <div class="card"><h4>Summary</h4><p class="summary">${esc(m.summary)}</p></div>
@@ -1019,6 +1075,7 @@ function suggestedFormats(m) {
     interview: ['quotes', 'clips', 'insights'],
     note:      [open ? 'reminder' : null, 'text', 'markdown'],
     rehearsal: ['stem', 'midi'],
+    review:    ['quotes', 'markdown', 'pdf'],
   };
   const base = m.tags.flatMap(t => byTag[t] || []);
   if (!base.length) base.push('markdown', 'text', 'audio');
