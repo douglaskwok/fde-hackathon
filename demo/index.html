@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memos</title>
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --sidebar: rgba(246,246,248,0.9);
+    --panel: #ffffff;
+    --line: rgba(0,0,0,0.08);
+    --text: #1d1d1f;
+    --text-2: #6e6e73;
+    --text-3: #aeaeb2;
+    --blue: #007aff;
+    --green: #34c759;
+    --yellow: #ffcc00;
+    --red: #ff3b30;
+    --fill: rgba(120,120,128,0.12);
+    --fill-2: rgba(120,120,128,0.2);
+    --selected: rgba(0,122,255,0.12);
+    --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1e;
+      --sidebar: rgba(28,28,30,0.9);
+      --panel: #2c2c2e;
+      --line: rgba(255,255,255,0.1);
+      --text: #f5f5f7;
+      --text-2: #98989d;
+      --text-3: #636366;
+      --blue: #0a84ff;
+      --green: #30d158;
+      --yellow: #ffd60a;
+      --red: #ff453a;
+      --fill: rgba(120,120,128,0.24);
+      --fill-2: rgba(120,120,128,0.36);
+      --selected: rgba(10,132,255,0.22);
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.4);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Inter, system-ui, sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+  button:focus-visible, select:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 6px; }
+
+  .app {
+    display: grid;
+    grid-template-columns: 220px 340px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    background: var(--sidebar);
+    border-right: 1px solid var(--line);
+    padding: 52px 10px 12px;
+    display: flex; flex-direction: column; gap: 2px;
+    overflow-y: auto;
+  }
+  .sidebar h6 {
+    margin: 14px 10px 6px; font-size: 11px; font-weight: 600;
+    color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .nav {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px; border-radius: 7px; width: 100%; text-align: left;
+    font-size: 13px;
+  }
+  .nav:hover { background: var(--fill); }
+  .nav.active { background: var(--selected); color: var(--blue); font-weight: 500; }
+  .nav .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .nav .label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav .count { color: var(--text-3); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .nav.active .count { color: var(--blue); opacity: 0.7; }
+  .nav .glyph { width: 16px; text-align: center; font-size: 13px; color: var(--blue); }
+  .nav.active .glyph { color: var(--blue); }
+  .nav.add { color: var(--text-2); }
+  .nav.add .glyph { color: var(--text-2); }
+  .sidebar .spacer { flex: 1; }
+  .import {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--blue); color: #fff; font-weight: 500;
+    padding: 8px 12px; border-radius: 8px; width: 100%;
+  }
+  .import:hover { filter: brightness(1.05); }
+  .import:active { transform: scale(0.98); }
+
+  /* ---------- List ---------- */
+  .list {
+    background: var(--bg);
+    border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .list-header { padding: 48px 20px 10px; }
+  .list-header h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .list-header .sub { color: var(--text-2); margin-top: 2px; font-size: 12px; }
+  .list-scroll { overflow-y: auto; padding: 0 12px 16px; }
+  .group-title {
+    position: sticky; top: 0; z-index: 1;
+    font-size: 11px; font-weight: 600; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 14px 8px 6px; background: var(--bg);
+  }
+  .row {
+    display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: start;
+    width: 100%; text-align: left;
+    padding: 10px 10px; border-radius: 10px;
+  }
+  .row:hover { background: var(--fill); }
+  .row.active { background: var(--selected); }
+  .row .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; transition: background .3s; }
+  .row .title { font-weight: 500; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .meta { color: var(--text-2); font-size: 12px; margin-top: 2px; display: flex; gap: 6px; align-items: center; }
+  .row .meta .cat { color: var(--text-2); }
+  .row .meta .sep { color: var(--text-3); }
+  .row .meta .pend { color: #b7950b; }
+  @media (prefers-color-scheme: dark) { .row .meta .pend { color: var(--yellow); } }
+  .row .time { color: var(--text-3); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; margin-top: 1px; }
+  .row.processing .title { color: var(--text-2); }
+  .empty { color: var(--text-3); text-align: center; padding: 60px 20px; font-size: 13px; }
+
+  .dot.yellow { background: var(--yellow); }
+  .dot.green { background: var(--green); }
+  .dot.gray { background: var(--text-3); }
+
+  /* ---------- Detail ---------- */
+  .detail { overflow-y: auto; padding: 48px 40px 60px; background: var(--bg); }
+  .detail-inner { max-width: 640px; margin: 0 auto; }
+  .detail .placeholder { color: var(--text-3); text-align: center; margin-top: 35vh; font-size: 15px; }
+  .back { display: none; color: var(--blue); font-size: 15px; margin-bottom: 14px; }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 500; padding: 3px 10px 3px 8px; border-radius: 999px;
+    background: var(--fill); color: var(--text-2);
+    transition: all .3s;
+  }
+  .status-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .status-pill.yellow { background: rgba(255,204,0,0.18); color: #8a6d00; }
+  .status-pill.green { background: rgba(52,199,89,0.16); color: #1e7d3a; }
+  @media (prefers-color-scheme: dark) {
+    .status-pill.yellow { color: var(--yellow); }
+    .status-pill.green { color: var(--green); }
+  }
+
+  .detail h2 {
+    margin: 10px 0 4px; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2;
+  }
+  .detail .when { color: var(--text-2); font-size: 13px; margin-bottom: 18px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 20px; }
+  .chip {
+    font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--fill); color: var(--text);
+  }
+  .chip.ai { position: relative; }
+  .chip.add { color: var(--blue); background: transparent; border: 1px dashed var(--fill-2); }
+  .chip.add:hover { background: var(--fill); }
+  .select-wrap { position: relative; display: inline-flex; }
+  .select-wrap select {
+    appearance: none; -webkit-appearance: none;
+    font: inherit; font-size: 12px; font-weight: 500;
+    padding: 4px 24px 4px 10px; border-radius: 999px; border: 0;
+    background: var(--selected); color: var(--blue); cursor: pointer;
+  }
+  .select-wrap::after {
+    content: ""; position: absolute; right: 10px; top: 50%; width: 6px; height: 6px;
+    border-right: 1.5px solid var(--blue); border-bottom: 1.5px solid var(--blue);
+    transform: translateY(-70%) rotate(45deg); pointer-events: none;
+  }
+
+  .card {
+    background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .card h4 {
+    margin: 0 0 10px; font-size: 11px; font-weight: 600; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.04em; display: flex; justify-content: space-between; align-items: center;
+  }
+  .card h4 .hint { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text-3); }
+  .summary { font-size: 14px; line-height: 1.5; margin: 0; color: var(--text); }
+
+  /* player */
+  .player { display: flex; align-items: center; gap: 14px; }
+  .play {
+    width: 40px; height: 40px; border-radius: 50%; background: var(--blue); color: #fff;
+    display: grid; place-items: center; flex: none; font-size: 14px;
+  }
+  .play:active { transform: scale(0.95); }
+  .track { flex: 1; }
+  .bar {
+    position: relative; height: 6px; border-radius: 3px; background: var(--fill-2); cursor: pointer;
+  }
+  .bar .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--blue); border-radius: 3px; }
+  .bar .marker {
+    position: absolute; top: -4px; width: 3px; height: 14px; border-radius: 2px;
+    background: var(--yellow); transform: translateX(-50%); cursor: pointer;
+  }
+  .bar .marker:hover { background: var(--text); }
+  .times { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+
+  /* key moments */
+  .moments { display: flex; flex-direction: column; }
+  .moment {
+    display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center;
+    padding: 10px 6px; border-radius: 8px; text-align: left; width: 100%;
+    border-top: 1px solid var(--line);
+  }
+  .moment:first-child { border-top: 0; }
+  .moment:hover { background: var(--fill); }
+  .moment.current .ts { background: var(--blue); color: #fff; }
+  .moment .ts {
+    font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 600;
+    background: var(--selected); color: var(--blue); padding: 3px 0; border-radius: 6px; text-align: center;
+  }
+  .moment .lbl { font-size: 13px; }
+
+  /* pending items */
+  .items { display: flex; flex-direction: column; }
+  .item {
+    display: flex; align-items: flex-start; gap: 12px; padding: 10px 6px;
+    border-top: 1px solid var(--line); width: 100%; text-align: left;
+  }
+  .item:first-child { border-top: 0; }
+  .item .box {
+    width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--text-3);
+    flex: none; display: grid; place-items: center; transition: all .2s; margin-top: 1px;
+  }
+  .item .box svg { opacity: 0; transform: scale(0.6); transition: all .2s; }
+  .item.done .box { background: var(--green); border-color: var(--green); }
+  .item.done .box svg { opacity: 1; transform: scale(1); }
+  .item .txt { font-size: 14px; line-height: 1.4; transition: color .2s; }
+  .item.done .txt { color: var(--text-3); text-decoration: line-through; }
+  .item .kind {
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-3); margin-top: 3px;
+  }
+  .resolved-note { color: var(--text-2); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  .resolved-note .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .processing-card { display: flex; align-items: center; gap: 12px; color: var(--text-2); }
+  .spinner {
+    width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--fill-2); border-top-color: var(--blue);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
+    background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: all .3s;
+    box-shadow: var(--shadow);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .list { border-right: 0; }
+    .detail { display: none; padding: 24px 16px 60px; }
+    .app.show-detail .list { display: none; }
+    .app.show-detail .detail { display: block; }
+    .back { display: inline-flex; }
+    .list-header { padding-top: 28px; }
+    .mobile-import { display: inline-flex !important; }
+  }
+  .mobile-import { display: none; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="sidebar" id="sidebar"></aside>
+  <section class="list">
+    <div class="list-header">
+      <h1 id="listTitle">All Memos</h1>
+      <div class="sub" id="listSub"></div>
+    </div>
+    <div class="list-scroll" id="listScroll"></div>
+  </section>
+  <section class="detail" id="detail"></section>
+</div>
+<input type="file" id="fileInput" accept="audio/*" multiple hidden>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+const STORAGE_KEY = 'memos-demo-v1';
+
+const defaultCategories = [
+  { id: 'song',    name: 'Song idea',     color: '#af52de' },
+  { id: 'meeting', name: 'Meeting',       color: '#007aff' },
+  { id: 'note',    name: 'Note to self',  color: '#ff9500' },
+  { id: 'interview', name: 'Interviews',  color: '#5ac8fa' },
+];
+
+const daysAgo = (n, h = 10, m = 0) => { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(h, m, 0, 0); return d.toISOString(); };
+
+const seedMemos = [
+  {
+    id: 'm1', title: '1:1 with Sam — career growth and Q4 goals', category: 'meeting',
+    tags: ['Sam', '1:1', 'Q4'], duration: 2712, createdAt: daysAgo(0, 14, 5),
+    summary: 'Sam wants to move toward a tech-lead role. You agreed to put together a growth plan and find a project they can own. Also flagged that the design review process is slowing their team down.',
+    moments: [
+      { t: 190,  label: 'Sam brings up wanting the tech-lead path' },
+      { t: 1120, label: 'Decision: Sam owns the notifications rewrite' },
+      { t: 2465, label: 'Design review bottleneck, worth raising with Priya' },
+    ],
+    items: [
+      { id: 'i1', kind: 'action', text: 'Draft a growth plan for Sam before next 1:1', done: false },
+      { id: 'i2', kind: 'action', text: 'Ask Priya about streamlining design review', done: false },
+    ],
+  },
+  {
+    id: 'm2', title: 'Bridge idea in D minor', category: 'song',
+    tags: ['D minor', 'bridge', 'humming'], duration: 48, createdAt: daysAgo(0, 23, 40),
+    summary: 'A descending bridge melody hummed over an implied D minor to B-flat progression. You said it might work under the chorus of the song you were working on last week.',
+    moments: [
+      { t: 6,  label: 'The descending line starts' },
+      { t: 31, label: '“Try this under the chorus”' },
+    ],
+    items: [
+      { id: 'i3', kind: 'revisit', text: 'Try this bridge under last week’s chorus', done: false },
+    ],
+  },
+  {
+    id: 'm3', title: 'Standup debrief — API launch slipping', category: 'meeting',
+    tags: ['API', 'launch', 'standup'], duration: 754, createdAt: daysAgo(1, 9, 32),
+    summary: 'The API launch is likely to slip a week because of auth edge cases. You need to tell marketing before Thursday and decide whether to cut the batch endpoint from v1.',
+    moments: [
+      { t: 95,  label: 'Why the auth edge cases are blocking' },
+      { t: 410, label: 'Decision point on cutting batch endpoint' },
+      { t: 690, label: 'Reminder: tell marketing before Thursday' },
+    ],
+    items: [
+      { id: 'i4', kind: 'action', text: 'Tell marketing the launch may slip a week', done: false },
+      { id: 'i5', kind: 'action', text: 'Decide on cutting the batch endpoint from v1', done: false },
+      { id: 'i6', kind: 'action', text: 'Follow up with Jordan on the auth fix ETA', done: false },
+    ],
+  },
+  {
+    id: 'm4', title: 'Interview with Priya — onboarding friction', category: 'interview',
+    tags: ['onboarding', 'research', 'Priya'], duration: 1931, createdAt: daysAgo(2, 15, 0),
+    summary: 'Priya dropped off during account setup twice because the verification email landed in spam. She said the empty dashboard after signup made her unsure it had worked.',
+    moments: [
+      { t: 240,  label: '“I thought it just didn’t work”' },
+      { t: 870,  label: 'Verification email went to spam, twice' },
+      { t: 1540, label: 'What she expected to see after signup' },
+    ],
+    items: [
+      { id: 'i7', kind: 'revisit', text: 'Pull quotes for the onboarding synthesis', done: false },
+    ],
+  },
+  {
+    id: 'm5', title: 'Chorus melody, second pass', category: 'song',
+    tags: ['chorus', 'melody'], duration: 72, createdAt: daysAgo(4, 21, 15),
+    summary: 'A brighter take on the chorus melody with a lift on the last line. You sounded happy with it and said it was ready to bring to rehearsal.',
+    moments: [
+      { t: 12, label: 'The lift on the last line' },
+    ],
+    items: [
+      { id: 'i8', kind: 'revisit', text: 'Bring to rehearsal', done: true },
+    ],
+  },
+  {
+    id: 'm6', title: 'Grocery run and call Mom back', category: 'note',
+    tags: ['errands'], duration: 19, createdAt: daysAgo(5, 18, 2),
+    summary: 'Eggs, oat milk, basil. Call Mom back about the weekend.',
+    moments: [],
+    items: [
+      { id: 'i9', kind: 'action', text: 'Call Mom back about the weekend', done: true },
+    ],
+  },
+  {
+    id: 'm7', title: 'Parked on level 3, near the elevator', category: 'note',
+    tags: ['parking'], duration: 6, createdAt: daysAgo(6, 8, 45),
+    summary: 'Car is on level 3 by the elevator.',
+    moments: [],
+    items: [],
+  },
+];
+
+let state = load() || { categories: defaultCategories, memos: seedMemos, filter: 'all', selectedId: 'm1' };
+
+function load() {
+  try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
+}
+function save() {
+  try {
+    const copy = { ...state, memos: state.memos.filter(m => !m.processing).map(({ src, ...m }) => m) };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(copy));
+  } catch {}
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+const isPending = m => m.items.some(i => !i.done);
+const statusOf = m => m.processing ? 'gray' : isPending(m) ? 'yellow' : 'green';
+const cat = id => state.categories.find(c => c.id === id);
+const fmt = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return h ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`; };
+function when(iso) {
+  const d = new Date(iso), now = new Date();
+  const sameDay = (a, b) => a.toDateString() === b.toDateString();
+  const y = new Date(now); y.setDate(now.getDate() - 1);
+  const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  if (sameDay(d, now)) return `Today at ${time}`;
+  if (sameDay(d, y)) return `Yesterday at ${time}`;
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ` at ${time}`;
+}
+function shortWhen(iso) {
+  const d = new Date(iso), now = new Date();
+  const y = new Date(now); y.setDate(now.getDate() - 1);
+  if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  if (d.toDateString() === y.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+// ---------------------------------------------------------------------------
+// Player (real <audio> for imported files, simulated for seed memos)
+// ---------------------------------------------------------------------------
+const player = {
+  memoId: null, audio: null, simT: 0, simTimer: null, playing: false,
+  bind(memo) {
+    if (this.memoId === memo.id) return;
+    this.stop();
+    this.memoId = memo.id; this.simT = 0;
+    if (memo.src) { this.audio = new Audio(memo.src); this.audio.addEventListener('timeupdate', () => renderPlayer()); this.audio.addEventListener('ended', () => { this.playing = false; renderPlayer(); }); }
+    else this.audio = null;
+  },
+  stop() { if (this.audio) { this.audio.pause(); } clearInterval(this.simTimer); this.playing = false; this.audio = null; },
+  duration() { const m = state.memos.find(m => m.id === this.memoId); return m ? m.duration : 0; },
+  time() { return this.audio ? this.audio.currentTime : this.simT; },
+  toggle() {
+    if (this.playing) { this.audio ? this.audio.pause() : clearInterval(this.simTimer); this.playing = false; }
+    else {
+      if (this.audio) this.audio.play();
+      else this.simTimer = setInterval(() => { this.simT += 0.25; if (this.simT >= this.duration()) { this.simT = this.duration(); clearInterval(this.simTimer); this.playing = false; } renderPlayer(); }, 250);
+      this.playing = true;
+    }
+    renderPlayer();
+  },
+  seek(t) { t = Math.max(0, Math.min(t, this.duration())); if (this.audio) this.audio.currentTime = t; else this.simT = t; renderPlayer(); },
+};
+
+// ---------------------------------------------------------------------------
+// Rendering
+// ---------------------------------------------------------------------------
+function render() { renderSidebar(); renderList(); renderDetail(); save(); }
+
+function renderSidebar() {
+  const m = state.memos;
+  const nav = (key, label, count, glyph, color) => `
+    <button class="nav ${state.filter === key ? 'active' : ''}" data-filter="${key}">
+      ${color ? `<span class="dot" style="background:${color}"></span>` : `<span class="glyph">${glyph}</span>`}
+      <span class="label">${esc(label)}</span><span class="count">${count}</span>
+    </button>`;
+  document.getElementById('sidebar').innerHTML = `
+    ${nav('all', 'All Memos', m.length, '◉')}
+    ${nav('pending', 'Pending', m.filter(x => !x.processing && isPending(x)).length, '', 'var(--yellow)')}
+    ${nav('resolved', 'Resolved', m.filter(x => !x.processing && !isPending(x)).length, '', 'var(--green)')}
+    <h6>Categories</h6>
+    ${state.categories.map(c => nav('cat:' + c.id, c.name, m.filter(x => x.category === c.id).length, '', c.color)).join('')}
+    <button class="nav add" id="addCat"><span class="glyph">＋</span><span class="label">New Category</span></button>
+    <div class="spacer"></div>
+    <button class="import" id="importBtn">↑&nbsp; Import Memos</button>`;
+  document.querySelectorAll('.nav[data-filter]').forEach(b => b.onclick = () => { state.filter = b.dataset.filter; render(); });
+  document.getElementById('addCat').onclick = addCategory;
+  document.getElementById('importBtn').onclick = () => document.getElementById('fileInput').click();
+}
+
+function filteredMemos() {
+  const f = state.filter;
+  return state.memos.filter(m => f === 'all' ? true : f === 'pending' ? (!m.processing && isPending(m)) : f === 'resolved' ? (!m.processing && !isPending(m)) : m.category === f.slice(4));
+}
+
+function renderList() {
+  const f = state.filter;
+  const title = f === 'all' ? 'All Memos' : f === 'pending' ? 'Pending' : f === 'resolved' ? 'Resolved' : (cat(f.slice(4))?.name || 'Memos');
+  document.getElementById('listTitle').textContent = title;
+  const list = filteredMemos().slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const pending = list.filter(m => m.processing || isPending(m));
+  const resolved = list.filter(m => !m.processing && !isPending(m));
+  document.getElementById('listSub').innerHTML = `${pending.filter(m => !m.processing).length} need attention <button class="mobile-import" id="importBtn2" style="color:var(--blue);margin-left:8px">Import</button>`;
+  const btn2 = document.getElementById('importBtn2'); if (btn2) btn2.onclick = () => document.getElementById('fileInput').click();
+
+  const row = m => {
+    const c = cat(m.category); const n = m.items.filter(i => !i.done).length;
+    return `<button class="row ${m.id === state.selectedId ? 'active' : ''} ${m.processing ? 'processing' : ''}" data-id="${m.id}">
+      <span class="dot ${statusOf(m)}"></span>
+      <span>
+        <div class="title">${esc(m.title)}</div>
+        <div class="meta">
+          ${m.processing ? '<span>Processing…</span>' : `<span class="cat">${esc(c?.name || 'Uncategorized')}</span>
+          <span class="sep">·</span><span>${fmt(m.duration)}</span>
+          ${n ? `<span class="sep">·</span><span class="pend">${n} pending</span>` : ''}`}
+        </div>
+      </span>
+      <span class="time">${shortWhen(m.createdAt)}</span>
+    </button>`;
+  };
+  const scroll = document.getElementById('listScroll');
+  scroll.innerHTML = list.length ? `
+    ${pending.length ? `<div class="group-title">Needs attention</div>${pending.map(row).join('')}` : ''}
+    ${resolved.length ? `<div class="group-title">Resolved</div>${resolved.map(row).join('')}` : ''}`
+    : `<div class="empty">No memos here.</div>`;
+  scroll.querySelectorAll('.row').forEach(b => b.onclick = () => { state.selectedId = b.dataset.id; document.getElementById('app').classList.add('show-detail'); render(); });
+}
+
+function renderDetail() {
+  const el = document.getElementById('detail');
+  const m = state.memos.find(x => x.id === state.selectedId);
+  if (!m) { el.innerHTML = `<div class="placeholder">Select a memo</div>`; return; }
+  player.bind(m);
+  const st = statusOf(m); const c = cat(m.category);
+  const open = m.items.filter(i => !i.done).length;
+
+  if (m.processing) {
+    el.innerHTML = `<div class="detail-inner">
+      <button class="back" id="back">‹ Memos</button>
+      <span class="status-pill"><span class="dot gray"></span>Processing</span>
+      <h2>${esc(m.title)}</h2><div class="when">${when(m.createdAt)}</div>
+      <div class="card processing-card"><div class="spinner"></div>Listening for a title, summary, key moments, and anything you asked yourself to do…</div>
+    </div>`;
+    bindBack(); return;
+  }
+
+  el.innerHTML = `<div class="detail-inner">
+    <button class="back" id="back">‹ Memos</button>
+    <span class="status-pill ${st}"><span class="dot ${st}"></span>${st === 'yellow' ? `${open} pending` : 'Resolved'}</span>
+    <h2>${esc(m.title)}</h2>
+    <div class="when">${when(m.createdAt)} · ${fmt(m.duration)}</div>
+
+    <div class="chips">
+      <span class="select-wrap"><select id="catSelect">
+        ${state.categories.map(x => `<option value="${x.id}" ${x.id === m.category ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}
+        <option value="__new">New category…</option>
+      </select></span>
+      ${m.tags.map(t => `<span class="chip">${esc(t)}</span>`).join('')}
+      <button class="chip add" id="addTag">＋ Tag</button>
+    </div>
+
+    <div class="card">
+      <div class="player">
+        <button class="play" id="play">${player.playing ? '❚❚' : '▶'}</button>
+        <div class="track">
+          <div class="bar" id="bar"><div class="fill" id="fill"></div>
+            ${m.moments.map((k, i) => `<span class="marker" data-i="${i}" style="left:${(k.t / m.duration) * 100}%" title="${esc(k.label)}"></span>`).join('')}
+          </div>
+          <div class="times"><span id="cur">0:00</span><span>${fmt(m.duration)}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card"><h4>Summary</h4><p class="summary">${esc(m.summary)}</p></div>
+
+    ${m.moments.length ? `<div class="card"><h4>Key moments <span class="hint">Tap to jump</span></h4>
+      <div class="moments">${m.moments.map((k, i) => `<button class="moment" data-i="${i}"><span class="ts">${fmt(k.t)}</span><span class="lbl">${esc(k.label)}</span></button>`).join('')}</div></div>` : ''}
+
+    <div class="card"><h4>${m.items.length ? 'To deal with' : 'Nothing to deal with'}</h4>
+      ${m.items.length ? `<div class="items">${m.items.map(i => `
+        <button class="item ${i.done ? 'done' : ''}" data-id="${i.id}">
+          <span class="box"><svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span><div class="txt">${esc(i.text)}</div><div class="kind">${i.kind === 'revisit' ? 'Revisit' : 'Action item'}</div></span>
+        </button>`).join('')}</div>`
+      : `<div class="resolved-note"><span class="dot green"></span>This memo is just here when you need it.</div>`}
+    </div>
+  </div>`;
+
+  bindBack();
+  document.getElementById('play').onclick = () => player.toggle();
+  document.getElementById('bar').onclick = e => { if (e.target.classList.contains('marker')) return; const r = e.currentTarget.getBoundingClientRect(); player.seek(((e.clientX - r.left) / r.width) * m.duration); };
+  el.querySelectorAll('.marker, .moment').forEach(b => b.onclick = () => { player.seek(m.moments[+b.dataset.i].t); if (!player.playing) player.toggle(); });
+  el.querySelectorAll('.item').forEach(b => b.onclick = () => {
+    const it = m.items.find(i => i.id === b.dataset.id); it.done = !it.done;
+    const wasPending = open > 0, nowPending = isPending(m);
+    render();
+    if (wasPending && !nowPending) toast('Resolved · nothing left to deal with');
+  });
+  document.getElementById('catSelect').onchange = e => {
+    if (e.target.value === '__new') { const id = addCategory(); if (id) { m.category = id; } }
+    else m.category = e.target.value;
+    render();
+  };
+  document.getElementById('addTag').onclick = () => { const t = prompt('Add a tag'); if (t && t.trim()) { m.tags.push(t.trim()); render(); } };
+  renderPlayer();
+}
+
+function bindBack() { const b = document.getElementById('back'); if (b) b.onclick = () => { document.getElementById('app').classList.remove('show-detail'); renderList(); }; }
+
+function renderPlayer() {
+  const fill = document.getElementById('fill'), cur = document.getElementById('cur'), play = document.getElementById('play');
+  if (!fill) return;
+  const d = player.duration() || 1, t = player.time();
+  fill.style.width = `${Math.min(100, (t / d) * 100)}%`;
+  cur.textContent = fmt(t);
+  play.textContent = player.playing ? '❚❚' : '▶';
+  const m = state.memos.find(x => x.id === player.memoId);
+  if (m) document.querySelectorAll('.moment').forEach((el, i) => {
+    const next = m.moments[i + 1]; el.classList.toggle('current', t >= m.moments[i].t && (!next || t < next.t));
+  });
+}
+
+function addCategory() {
+  const name = prompt('New category name');
+  if (!name || !name.trim()) return null;
+  const palette = ['#ff2d55', '#5856d6', '#00c7be', '#ff9f0a', '#64d2ff', '#bf5af2'];
+  const c = { id: 'c' + Date.now(), name: name.trim(), color: palette[state.categories.length % palette.length] };
+  state.categories.push(c); render(); return c.id;
+}
+
+// ---------------------------------------------------------------------------
+// Import (mock enrichment, real playback)
+// ---------------------------------------------------------------------------
+document.getElementById('fileInput').onchange = async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  for (const f of files) {
+    const src = URL.createObjectURL(f);
+    const duration = await new Promise(res => { const a = new Audio(src); a.onloadedmetadata = () => res(isFinite(a.duration) ? a.duration : 120); a.onerror = () => res(120); });
+    const memo = { id: 'u' + Date.now() + Math.random().toString(36).slice(2, 6), title: f.name, processing: true, category: 'note', tags: [], duration, createdAt: new Date(f.lastModified || Date.now()).toISOString(), summary: '', moments: [], items: [], src };
+    state.memos.unshift(memo); state.selectedId = memo.id; state.filter = 'all'; render();
+    setTimeout(() => {
+      const base = f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+      Object.assign(memo, {
+        processing: false,
+        title: base.match(/^new recording/i) ? 'Untitled thought, worth a listen' : base.charAt(0).toUpperCase() + base.slice(1),
+        tags: ['imported'],
+        summary: 'This is a draft demo, so the AI layer is simulated. A real build would listen to this recording and write a two-sentence summary here, pick out the moments worth jumping to, and list anything you asked yourself to do.',
+        moments: duration > 20 ? [ { t: Math.round(duration * 0.15), label: 'First idea introduced' }, { t: Math.round(duration * 0.62), label: 'The part you’d want to hear again' } ] : [],
+        items: duration > 20 ? [ { id: 'i' + Date.now(), kind: 'revisit', text: 'Come back to this one', done: false } ] : [],
+      });
+      render(); toast('Processed · ' + memo.title);
+    }, 1800 + Math.random() * 800);
+  }
+};
+
+render();
+</script>
+</body>
+</html>
