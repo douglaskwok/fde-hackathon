@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Memos</title>
+<title>Voiceflow</title>
 <style>
   :root {
     --window: #ececec;
@@ -113,6 +113,21 @@
   .lights { height: var(--toolbar-h); display: flex; align-items: center; gap: 8px; padding: 0 4px; flex: none; }
   .lights i { width: 12px; height: 12px; border-radius: 50%; display: block; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.15); }
   .lights i:nth-child(1) { background: #ff5f57; } .lights i:nth-child(2) { background: #febc2e; } .lights i:nth-child(3) { background: #28c840; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 6px 8px 16px; }
+  .brand .mark {
+    width: 30px; height: 30px; border-radius: 9px; flex: none; display: grid; place-items: center; color: #fff;
+    background: linear-gradient(145deg, #4da3ff 0%, #0a7aff 48%, #5e5ce6 100%);
+    box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.35), 0 1px 2px rgba(10,122,255,0.35), 0 4px 12px rgba(94,92,230,0.25);
+  }
+  .brand .mark svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2.1; stroke-linecap: round; }
+  .brand .word {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    font-size: 19px; font-weight: 700; letter-spacing: -0.035em; line-height: 1;
+    background: linear-gradient(90deg, var(--text) 0%, var(--text) 55%, var(--text-2) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .brand .word b { font-weight: 500; }
+  .brand .tag { display: block; font-size: 10.5px; font-weight: 500; color: var(--text-3); letter-spacing: 0.01em; margin-top: 4px; }
   .sidebar h6 {
     margin: 16px 10px 5px; font-size: 11px; font-weight: 600; color: var(--text-3); letter-spacing: 0.01em;
   }
@@ -730,6 +745,10 @@ function renderSidebar() {
     </button>`;
   document.getElementById('sidebar').innerHTML = `
     <div class="lights"><i></i><i></i><i></i></div>
+    <div class="brand">
+      <span class="mark"><svg viewBox="0 0 24 24"><path d="M4 12h1.5M8 8.5v7M12 5v14M16 9v6M19.5 11v2"/></svg></span>
+      <span><span class="word">Voice<b>flow</b></span><span class="tag">Say it. It sorts itself.</span></span>
+    </div>
     ${nav('all', 'All Memos', m.length, I('tray'))}
     ${nav('pending', 'Needs attention', m.filter(x => !x.processing && isPending(x)).length, '', 'var(--yellow)')}
     ${nav('resolved', 'Resolved', m.filter(x => !x.processing && !isPending(x)).length, '', 'var(--green)')}

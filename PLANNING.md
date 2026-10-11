@@ -1,4 +1,4 @@
-# Voice Memo Organizer — Project Plan
+# Voiceflow — Project Plan
 
 > Idea-layer plan. Implementation details are intentionally light.
 
