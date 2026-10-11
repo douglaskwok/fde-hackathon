@@ -97,6 +97,29 @@
   }
   .import:hover { filter: brightness(1.05); }
   .import:active { transform: scale(0.98); }
+  .import.secondary { background: var(--fill); color: var(--text); margin-top: 6px; }
+  .record-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--red); color: #fff; font-weight: 500;
+    padding: 8px 12px; border-radius: 8px; width: 100%;
+  }
+  .record-btn .rdot { width: 10px; height: 10px; border-radius: 50%; background: #fff; }
+  .record-btn:active { transform: scale(0.98); }
+
+  .rec-view { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70vh; gap: 28px; }
+  .rec-view .big-time { font-size: 56px; font-weight: 300; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .rec-view .live { display: flex; align-items: center; gap: 8px; color: var(--red); font-weight: 500; font-size: 13px; }
+  .rec-view .live .rdot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .35; transform: scale(.8);} }
+  .wave { display: flex; align-items: center; gap: 3px; height: 72px; }
+  .wave span { width: 3px; background: var(--red); border-radius: 2px; height: 8px; transition: height .12s ease; }
+  .stop-btn {
+    width: 72px; height: 72px; border-radius: 50%; background: var(--fill-2);
+    display: grid; place-items: center;
+  }
+  .stop-btn::after { content: ""; width: 26px; height: 26px; border-radius: 6px; background: var(--red); }
+  .stop-btn:active { transform: scale(0.95); }
+  .rec-view .hint { color: var(--text-3); font-size: 12px; }
 
   /* ---------- List ---------- */
   .list {
@@ -265,6 +288,90 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* ---------- Export ---------- */
+  .detail-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .export-btn {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500;
+    color: var(--blue); padding: 5px 12px; border-radius: 999px; background: var(--selected);
+  }
+  .export-btn:hover { filter: brightness(0.97); }
+  .export-btn:active { transform: scale(0.97); }
+
+  .sheet-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.28); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    display: grid; place-items: center; z-index: 50; animation: fade .18s ease;
+  }
+  @keyframes fade { from { opacity: 0; } }
+  .sheet {
+    width: 540px; max-width: calc(100vw - 32px); max-height: calc(100vh - 48px); overflow-y: auto;
+    background: var(--panel); border-radius: 16px; box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+    padding: 22px 22px 18px; animation: rise .22s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes rise { from { transform: translateY(14px) scale(.98); opacity: 0; } }
+  .sheet-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .sheet-head h3 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+  .sheet-head .sub { color: var(--text-2); font-size: 13px; margin-top: 3px; }
+  .back-sheet { color: var(--blue); font-size: 14px; padding: 2px 4px; }
+  .close { width: 26px; height: 26px; border-radius: 50%; background: var(--fill); color: var(--text-2); display: grid; place-items: center; font-size: 13px; }
+  .close:hover { background: var(--fill-2); }
+  .sheet h5 { margin: 16px 0 8px; font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .04em; }
+  .fmt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .fmt {
+    display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; text-align: left;
+    padding: 12px; border-radius: 12px; background: var(--fill); width: 100%;
+  }
+  .fmt:hover { background: var(--fill-2); }
+  .fmt:active { transform: scale(0.985); }
+  .fmt .ic { width: 34px; height: 34px; border-radius: 9px; background: var(--panel); display: grid; place-items: center; font-size: 16px; color: var(--blue); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .fmt .nm { font-weight: 600; font-size: 13px; }
+  .fmt .pv { font-size: 12px; color: var(--text-2); margin-top: 2px; line-height: 1.35; }
+  .fmt.new { outline: 1.5px solid var(--blue); outline-offset: -1.5px; background: var(--selected); }
+  .fmt-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fmt-chip { font-size: 12px; padding: 5px 11px; border-radius: 999px; background: var(--fill); }
+  .fmt-chip:hover { background: var(--fill-2); }
+
+  .chat { margin-top: 6px; }
+  .msgs { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .msg { max-width: 85%; padding: 8px 12px; border-radius: 14px; font-size: 13px; line-height: 1.4; }
+  .msg.me { align-self: flex-end; background: var(--blue); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.ai { align-self: flex-start; background: var(--fill); border-bottom-left-radius: 4px; }
+  .msg.ai.thinking { color: var(--text-3); }
+  .chat-row { display: flex; gap: 8px; }
+  .chat-row input {
+    flex: 1; font: inherit; font-size: 13px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--text); outline: none;
+  }
+  .chat-row input:focus { border-color: var(--blue); }
+  .send { width: 34px; height: 34px; border-radius: 50%; background: var(--blue); color: #fff; display: grid; place-items: center; font-size: 14px; flex: none; }
+  .send:disabled { opacity: .4; }
+
+  .done-view { text-align: center; padding: 0 0 4px; }
+  .done-view .check { width: 56px; height: 56px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; margin: 0 auto 14px; animation: pop .35s cubic-bezier(.2,.8,.2,1); }
+  @keyframes pop { from { transform: scale(.5); opacity: 0; } }
+  .done-view h3 { margin: 0 0 4px; font-size: 18px; letter-spacing: -0.02em; }
+  .done-view .where { color: var(--text-2); font-size: 13px; }
+  .preview {
+    margin: 16px 0; padding: 14px 16px; border-radius: 12px; background: var(--bg); text-align: left;
+    font-size: 12.5px; line-height: 1.5; color: var(--text); border: 1px solid var(--line);
+  }
+  .preview.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; white-space: pre-wrap; }
+  .preview .fn { font-size: 11px; color: var(--text-3); margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .preview table { width: 100%; border-collapse: collapse; }
+  .preview td, .preview th { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); font-size: 12px; }
+  .preview th { color: var(--text-3); font-weight: 600; font-size: 11px; }
+  .preview .pr { display: grid; grid-template-rows: repeat(8, 10px); gap: 2px; position: relative; }
+  .preview .pr span { display: block; height: 10px; background: var(--blue); border-radius: 2px; }
+  .preview .wave span { background: var(--blue); }
+  .preview .li { display: flex; gap: 8px; align-items: center; padding: 3px 0; }
+  .preview .li i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--text-3); flex: none; }
+  .resolve-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 2px; font-size: 13px; }
+  .switch { width: 40px; height: 24px; border-radius: 12px; background: var(--fill-2); position: relative; transition: background .2s; }
+  .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: left .2s; }
+  .switch.on { background: var(--green); }
+  .switch.on::after { left: 18px; }
+  .primary { display: block; width: 100%; padding: 10px; border-radius: 10px; background: var(--blue); color: #fff; font-weight: 600; font-size: 14px; margin-top: 8px; }
+  .primary:active { transform: scale(.985); }
+
   /* ---------- Responsive ---------- */
   @media (max-width: 900px) {
     .app { grid-template-columns: 1fr; }
@@ -276,6 +383,9 @@
     .back { display: inline-flex; }
     .list-header { padding-top: 28px; }
     .mobile-import { display: inline-flex !important; }
+    .fmt-grid { grid-template-columns: 1fr; }
+    .sheet-bg { align-items: end; }
+    .sheet { border-radius: 16px 16px 0 0; max-width: 100vw; }
   }
   .mobile-import { display: none; }
 </style>
@@ -484,10 +594,12 @@ function renderSidebar() {
     ${state.categories.map(c => nav('cat:' + c.id, c.name, m.filter(x => x.category === c.id).length, '', c.color)).join('')}
     <button class="nav add" id="addCat"><span class="glyph">＋</span><span class="label">New Category</span></button>
     <div class="spacer"></div>
-    <button class="import" id="importBtn">↑&nbsp; Import Memos</button>`;
+    <button class="record-btn" id="recordBtn"><span class="rdot"></span>Record</button>
+    <button class="import secondary" id="importBtn">↑&nbsp; Import Memos</button>`;
   document.querySelectorAll('.nav[data-filter]').forEach(b => b.onclick = () => { state.filter = b.dataset.filter; render(); });
   document.getElementById('addCat').onclick = addCategory;
   document.getElementById('importBtn').onclick = () => document.getElementById('fileInput').click();
+  document.getElementById('recordBtn').onclick = startRecording;
 }
 
 function filteredMemos() {
@@ -502,8 +614,9 @@ function renderList() {
   const list = filteredMemos().slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const pending = list.filter(m => m.processing || isPending(m));
   const resolved = list.filter(m => !m.processing && !isPending(m));
-  document.getElementById('listSub').innerHTML = `${pending.filter(m => !m.processing).length} need attention <button class="mobile-import" id="importBtn2" style="color:var(--blue);margin-left:8px">Import</button>`;
+  document.getElementById('listSub').innerHTML = `${pending.filter(m => !m.processing).length} need attention <button class="mobile-import" id="recordBtn2" style="color:var(--red);margin-left:8px;font-weight:500">● Record</button> <button class="mobile-import" id="importBtn2" style="color:var(--blue);margin-left:8px">Import</button>`;
   const btn2 = document.getElementById('importBtn2'); if (btn2) btn2.onclick = () => document.getElementById('fileInput').click();
+  const rbtn2 = document.getElementById('recordBtn2'); if (rbtn2) rbtn2.onclick = startRecording;
 
   const row = m => {
     const c = cat(m.category); const n = m.items.filter(i => !i.done).length;
@@ -530,6 +643,7 @@ function renderList() {
 
 function renderDetail() {
   const el = document.getElementById('detail');
+  if (recording.active) { renderRecording(el); return; }
   const m = state.memos.find(x => x.id === state.selectedId);
   if (!m) { el.innerHTML = `<div class="placeholder">Select a memo</div>`; return; }
   player.bind(m);
@@ -548,7 +662,10 @@ function renderDetail() {
 
   el.innerHTML = `<div class="detail-inner">
     <button class="back" id="back">‹ Memos</button>
-    <span class="status-pill ${st}"><span class="dot ${st}"></span>${st === 'yellow' ? `${open} pending` : 'Resolved'}</span>
+    <div class="detail-top">
+      <span class="status-pill ${st}"><span class="dot ${st}"></span>${st === 'yellow' ? `${open} pending` : 'Resolved'}</span>
+      <button class="export-btn" id="exportBtn">⇪&nbsp; Export</button>
+    </div>
     <h2>${esc(m.title)}</h2>
     <div class="when">${when(m.createdAt)} · ${fmt(m.duration)}</div>
 
@@ -604,6 +721,7 @@ function renderDetail() {
     render();
   };
   document.getElementById('addTag').onclick = () => { const t = prompt('Add a tag'); if (t && t.trim()) { m.tags.push(t.trim()); render(); } };
+  document.getElementById('exportBtn').onclick = () => openExport(m);
   renderPlayer();
 }
 
@@ -631,17 +749,265 @@ function addCategory() {
 }
 
 // ---------------------------------------------------------------------------
-// Import (mock enrichment, real playback)
+// Export — Wizard of Oz. Suggested formats by category, then a chat to find more.
 // ---------------------------------------------------------------------------
-document.getElementById('fileInput').onchange = async e => {
-  const files = [...e.target.files]; e.target.value = '';
-  for (const f of files) {
-    const src = URL.createObjectURL(f);
-    const duration = await new Promise(res => { const a = new Audio(src); a.onloadedmetadata = () => res(isFinite(a.duration) ? a.duration : 120); a.onerror = () => res(120); });
-    const memo = { id: 'u' + Date.now() + Math.random().toString(36).slice(2, 6), title: f.name, processing: true, category: 'note', tags: [], duration, createdAt: new Date(f.lastModified || Date.now()).toISOString(), summary: '', moments: [], items: [], src };
-    state.memos.unshift(memo); state.selectedId = memo.id; state.filter = 'all'; render();
-    setTimeout(() => {
-      const base = f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+if (!state.customFormats) state.customFormats = {};
+
+const FORMATS = {
+  tasks:    { name: 'Tasks',            ic: '☑', pv: m => `${m.items.filter(i => !i.done).length || 'the'} action items, sent to Reminders`, where: 'Sent to Reminders', resolves: true },
+  notes:    { name: 'Meeting notes',    ic: '≣', pv: 'Summary, decisions, and action items as Markdown', where: 'Saved to Downloads', ext: 'md' },
+  email:    { name: 'Follow-up email',  ic: '✉', pv: 'A short draft to the people mentioned', where: 'Draft opened in Mail' },
+  midi:     { name: 'MIDI',             ic: '♪', pv: 'The melody as notes, quantized to tempo', where: 'Saved to Downloads', ext: 'mid' },
+  stem:     { name: 'Audio stem',       ic: '⎍', pv: 'The best take, trimmed and normalized, as WAV', where: 'Saved to Downloads', ext: 'wav' },
+  lyrics:   { name: 'Lyrics',           ic: '“', pv: 'The words you sang, as text', where: 'Saved to Downloads', ext: 'txt' },
+  quotes:   { name: 'Key quotes',       ic: '“', pv: 'Quotes with timestamps, as CSV', where: 'Saved to Downloads', ext: 'csv' },
+  clips:    { name: 'Quote clips',      ic: '✂', pv: 'A short audio clip around each key moment', where: 'Saved to Downloads', ext: 'zip' },
+  insights: { name: 'Insight sheet',    ic: '◈', pv: 'Themes, quotes, and participant details', where: 'Saved to Downloads', ext: 'md' },
+  reminder: { name: 'Reminder',         ic: '⏰', pv: 'As a reminder, due tomorrow morning', where: 'Added to Reminders', resolves: true },
+  markdown: { name: 'Markdown',         ic: '↓', pv: 'Title, summary, key moments, and pending items', where: 'Saved to Downloads', ext: 'md' },
+  pdf:      { name: 'PDF',              ic: '▤', pv: 'A one-page summary you can share', where: 'Saved to Downloads', ext: 'pdf' },
+  text:     { name: 'Plain text',       ic: 'T', pv: 'Just the words, nothing else', where: 'Saved to Downloads', ext: 'txt' },
+  audio:    { name: 'Trimmed audio',    ic: '◉', pv: 'The recording with silence removed, as M4A', where: 'Saved to Downloads', ext: 'm4a' },
+  // Formats the assistant can propose
+  table:    { name: 'Decision table',   ic: '▦', pv: 'Decisions and owners as a Markdown table, ready to paste', where: 'Copied to clipboard' },
+  sheet:    { name: 'Sheet music',      ic: '𝄞', pv: 'The melody notated on a staff, with key and tempo', where: 'Saved to Downloads', ext: 'pdf' },
+  leadsheet:{ name: 'Lead sheet',       ic: '𝄞', pv: 'Key, chords, and melody on one page', where: 'Saved to Downloads', ext: 'pdf' },
+  message:  { name: 'Text message',     ic: '💬', pv: 'A two-line message you can send right away', where: 'Copied to clipboard' },
+  csv:      { name: 'CSV',              ic: '▦', pv: 'One row per key moment, with timestamp and label', where: 'Saved to Downloads', ext: 'csv' },
+  calendar: { name: 'Calendar event',   ic: '▣', pv: 'A follow-up on your calendar', where: 'Added to Calendar' },
+  slides:   { name: 'Slide',            ic: '▭', pv: 'One slide with the key points', where: 'Saved to Downloads', ext: 'key' },
+};
+
+function suggestedFormats(m) {
+  const open = m.items.some(i => !i.done);
+  const base = {
+    meeting:   [open ? 'tasks' : null, 'notes', 'email'],
+    song:      ['midi', 'sheet', 'stem', 'lyrics'],
+    interview: ['quotes', 'clips', 'insights'],
+    note:      [open ? 'reminder' : null, 'text', 'markdown'],
+  }[m.category] || ['markdown', 'text', 'audio'];
+  const custom = state.customFormats[m.category] || [];
+  return [...new Set([...base.filter(Boolean), ...custom])];
+}
+
+const exportUI = { memo: null, el: null, msgs: [], proposed: [] };
+
+function openExport(m) {
+  exportUI.memo = m; exportUI.msgs = []; exportUI.proposed = [];
+  const bg = document.createElement('div'); bg.className = 'sheet-bg'; bg.id = 'sheetBg';
+  bg.onclick = e => { if (e.target === bg) closeExport(); };
+  document.body.appendChild(bg); exportUI.el = bg;
+  renderExportPicker();
+}
+function closeExport() { exportUI.el?.remove(); exportUI.el = null; }
+
+function fmtButton(key, isNew) {
+  const f = FORMATS[key]; const m = exportUI.memo;
+  return `<button class="fmt ${isNew ? 'new' : ''}" data-fmt="${key}"><span class="ic">${f.ic}</span><span><div class="nm">${esc(f.name)}</div><div class="pv">${esc(typeof f.pv === 'function' ? f.pv(m) : f.pv)}</div></span></button>`;
+}
+
+function renderExportPicker() {
+  const m = exportUI.memo;
+  const sugg = suggestedFormats(m);
+  const more = ['markdown', 'pdf', 'text', 'audio'].filter(k => !sugg.includes(k));
+  exportUI.el.innerHTML = `<div class="sheet">
+    <div class="sheet-head"><div><h3>Export as…</h3><div class="sub">What do you want this memo to become?</div></div><button class="close" id="closeSheet">✕</button></div>
+    <h5>Suggested for ${esc(cat(m.category)?.name || 'this memo')}</h5>
+    <div class="fmt-grid">${sugg.map(k => fmtButton(k, false)).join('')}</div>
+    ${exportUI.proposed.length ? `<h5>From your request</h5><div class="fmt-grid">${exportUI.proposed.map(k => fmtButton(k, true)).join('')}</div>` : ''}
+    <h5>More formats</h5>
+    <div class="fmt-row">${more.map(k => `<button class="fmt-chip" data-fmt="${k}">${esc(FORMATS[k].name)}</button>`).join('')}</div>
+    <h5>Something else?</h5>
+    <div class="chat">
+      <div class="msgs" id="msgs">${exportUI.msgs.map(x => `<div class="msg ${x.who}">${esc(x.text)}</div>`).join('')}</div>
+      <form class="chat-row" id="chatForm"><input id="chatIn" placeholder="Describe what you need, e.g. “a table I can paste into Notion”" autocomplete="off"><button class="send" type="submit">↑</button></form>
+    </div>
+  </div>`;
+  document.getElementById('closeSheet').onclick = closeExport;
+  exportUI.el.querySelectorAll('[data-fmt]').forEach(b => b.onclick = () => doExport(b.dataset.fmt));
+  document.getElementById('chatForm').onsubmit = e => { e.preventDefault(); const v = document.getElementById('chatIn').value.trim(); if (v) askAssistant(v); };
+  const msgs = document.getElementById('msgs'); msgs.scrollTop = msgs.scrollHeight;
+  if (exportUI.msgs.length) document.getElementById('chatIn').focus();
+}
+
+function askAssistant(text) {
+  const m = exportUI.memo;
+  exportUI.msgs.push({ who: 'me', text });
+  renderExportPicker();
+  const msgs = document.getElementById('msgs');
+  msgs.insertAdjacentHTML('beforeend', '<div class="msg ai thinking">Thinking…</div>');
+  const q = text.toLowerCase();
+  const pick = (k, reply) => ({ k, reply });
+  let r;
+  if (/lead sheet|chords|chord chart/.test(q)) r = pick('leadsheet', 'I can lay it out as a lead sheet: key, chords, and the melody on one page.');
+  else if (/sheet music|notation|score|staff|notate/.test(q)) r = pick('sheet', 'Sheet music it is. The melody notated on a staff with key signature and tempo.');
+  else if (/ableton|logic|daw|garageband|fl studio|midi|piano roll/.test(q)) r = pick('midi', 'MIDI is the one. It drops straight into any DAW with the melody quantized to tempo.');
+  else if (/table|spreadsheet|excel|sheets|grid/.test(q) && m.category === 'meeting') r = pick('table', 'How about a table of decisions and owners? It pastes cleanly into Notion or a doc.');
+  else if (/csv|spreadsheet|excel|table/.test(q)) r = pick('csv', 'A CSV with one row per key moment, timestamp and label, works for that.');
+  else if (/text|message|sms|slack|send|tell/.test(q)) r = pick('message', 'Here is a two-line message you can send as is.');
+  else if (/email|mail/.test(q)) r = pick('email', 'A short follow-up email draft, addressed to the people you mentioned.');
+  else if (/calendar|schedule|meeting|event|date/.test(q)) r = pick('calendar', 'I can put a follow-up on your calendar with the summary in the notes.');
+  else if (/slide|deck|keynote|powerpoint|present/.test(q)) r = pick('slides', 'One slide with the key points, ready to drop into a deck.');
+  else if (/pdf|print/.test(q)) r = pick('pdf', 'A one-page PDF summary should do it.');
+  else if (/notion|doc|google|markdown|notes/.test(q)) r = pick(m.category === 'meeting' ? 'notes' : 'markdown', 'Markdown is the safest bet. It pastes into Notion, Google Docs, or Obsidian without losing structure.');
+  else if (/audio|clip|wav|mp3|sound|recording/.test(q)) r = pick(m.category === 'song' ? 'stem' : 'audio', 'I can give you just the useful part of the recording, trimmed and cleaned up.');
+  else if (/remind|todo|task|later/.test(q)) r = pick(m.items.length > 1 ? 'tasks' : 'reminder', 'I will turn what you asked yourself to do into Reminders.');
+  else if (/suggest|recommend|don.?t know|dunno|idk|not sure|what would/.test(q)) { const k = suggestedFormats(m)[0]; r = pick(k, `For a ${(cat(m.category)?.name || 'memo').toLowerCase()} like this, I would go with ${FORMATS[k].name}. ${typeof FORMATS[k].pv === 'function' ? FORMATS[k].pv(m) : FORMATS[k].pv}.`); }
+  else r = pick('markdown', 'I am not sure of the exact tool, so here is a Markdown version with the summary, key moments, and anything pending. Tell me where it is going and I can shape it better.');
+  setTimeout(() => {
+    exportUI.msgs.push({ who: 'ai', text: r.reply });
+    if (!exportUI.proposed.includes(r.k) && !suggestedFormats(m).includes(r.k)) exportUI.proposed.push(r.k);
+    const list = state.customFormats[m.category] = state.customFormats[m.category] || [];
+    if (!list.includes(r.k) && !suggestedFormats(m).includes(r.k)) { list.push(r.k); save(); }
+    renderExportPicker();
+  }, 700 + Math.random() * 500);
+}
+
+function slug(t) { return t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40); }
+
+function previewFor(key, m) {
+  const f = FORMATS[key]; const fn = f.ext ? `${slug(m.title)}.${f.ext}` : null;
+  const head = fn ? `<div class="fn"><span>${esc(fn)}</span><span>${f.ext.toUpperCase()}</span></div>` : '';
+  const openItems = m.items.filter(i => !i.done);
+  switch (key) {
+    case 'tasks': case 'reminder':
+      return `<div class="preview">${(openItems.length ? openItems : m.items).map(i => `<div class="li"><i></i>${esc(i.text)}</div>`).join('')}<div style="color:var(--text-3);font-size:11px;margin-top:8px">List: ${esc(cat(m.category)?.name)} · Due tomorrow 9:00 AM</div></div>`;
+    case 'midi': {
+      let seed = 0; for (const ch of m.id) seed = (seed * 31 + ch.charCodeAt(0)) & 0xffff;
+      const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+      const notes = Array.from({ length: 14 }, (_, i) => `<span style="grid-row:${1 + Math.floor(rnd() * 8)}; grid-column:${i * 2 + 1} / span ${1 + Math.floor(rnd() * 2)}"></span>`).join('');
+      return `<div class="preview">${head}<div class="pr" style="grid-template-columns:repeat(28,1fr)">${notes}</div><div style="color:var(--text-3);font-size:11px;margin-top:8px">${m.category === 'song' ? 'D minor · 92 BPM' : 'Detected key and tempo'} · ${fmt(m.moments[0]?.t || 0)}–${fmt((m.moments[0]?.t || 0) + 14)} · 14 notes</div></div>`;
+    }
+    case 'stem': case 'audio': case 'clips': {
+      const bars = Array.from({ length: 60 }, (_, i) => `<span style="height:${6 + Math.abs(Math.sin(i * 0.6) * 26 + Math.sin(i * 1.7) * 8)}px"></span>`).join('');
+      return `<div class="preview">${head}<div class="wave" style="height:40px;gap:2px">${bars}</div><div style="color:var(--text-3);font-size:11px;margin-top:8px">${key === 'clips' ? `${m.moments.length} clips · ~15s each` : `Trimmed to ${fmt(Math.min(m.duration, 25))} · 44.1 kHz`}</div></div>`;
+    }
+    case 'lyrics':
+      return `<div class="preview mono">${head}${esc(m.moments.map(k => k.label.replace(/[“”]/g, '')).join('\n') || 'la la la, la la')}\n…</div>`;
+    case 'quotes': case 'csv': case 'table':
+      return `<div class="preview">${head}<table><tr><th>${key === 'table' ? 'Decision' : 'Time'}</th><th>${key === 'table' ? 'Owner' : 'Quote'}</th></tr>${m.moments.map(k => `<tr><td>${key === 'table' ? esc(k.label) : fmt(k.t)}</td><td>${key === 'table' ? esc(m.tags[0] || 'You') : esc(k.label)}</td></tr>`).join('')}</table></div>`;
+    case 'email': case 'message': {
+      const who = m.tags.find(t => /^[A-Z][a-z]+$/.test(t)) || 'there';
+      return `<div class="preview">${key === 'email' ? `<div style="color:var(--text-3);font-size:11px;margin-bottom:6px">To: ${esc(who)} · Subject: Following up on ${esc(m.title)}</div>` : ''}Hi ${esc(who)}, ${key === 'email' ? 'following up on our conversation. ' : ''}${esc(m.summary.split('. ').slice(0, key === 'email' ? 2 : 1).join('. '))}.${openItems.length ? ` I will ${esc(openItems[0].text.charAt(0).toLowerCase() + openItems[0].text.slice(1))}.` : ''}</div>`;
+    }
+    case 'sheet': {
+      let seed = 0; for (const ch of m.id) seed = (seed * 31 + ch.charCodeAt(0)) & 0xffff;
+      const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+      const lines = [0,1,2,3,4].map(i => `<line x1="0" y1="${20 + i * 8}" x2="320" y2="${20 + i * 8}" stroke="currentColor" stroke-width="0.8" opacity=".55"/>`).join('');
+      const notes = Array.from({ length: 12 }, (_, i) => { const y = 16 + Math.round(rnd() * 9) * 4; const x = 44 + i * 23; const up = y > 36; return `<ellipse cx="${x}" cy="${y}" rx="3.6" ry="2.6" fill="currentColor" transform="rotate(-20 ${x} ${y})"/><line x1="${up ? x + 3.3 : x - 3.3}" y1="${y}" x2="${up ? x + 3.3 : x - 3.3}" y2="${up ? y - 22 : y + 22}" stroke="currentColor" stroke-width="1"/>`; }).join('');
+      const bars = [130, 222, 314].map(x => `<line x1="${x}" y1="20" x2="${x}" y2="52" stroke="currentColor" stroke-width="0.8"/>`).join('');
+      return `<div class="preview">${head}<div style="font-weight:600;font-size:13px">${esc(m.title)}</div><div style="color:var(--text-2);font-size:11px;margin-bottom:6px">♩ = 92 · D minor · 4/4</div><svg viewBox="0 0 320 70" width="100%" style="color:var(--text);display:block"><text x="4" y="48" font-size="34" font-family="serif">𝄞</text><text x="26" y="30" font-size="11" font-family="serif">♭</text>${lines}${bars}${notes}</svg><div style="color:var(--text-3);font-size:11px;margin-top:6px">Melody from ${fmt(m.moments[0]?.t || 0)} · 1 page</div></div>`;
+    }
+    case 'leadsheet':
+      return `<div class="preview mono">${head}${esc(m.title)}\nKey: D minor   Tempo: 92 BPM   4/4\n\n| Dm      | B♭      | F       | C       |\n| Dm      | B♭      | F       | A7      |\n\n(melody from ${fmt(m.moments[0]?.t || 0)})</div>`;
+    case 'calendar':
+      return `<div class="preview"><div style="font-weight:600">Follow up: ${esc(m.title)}</div><div style="color:var(--text-2);font-size:12px;margin-top:2px">Tomorrow · 9:00–9:15 AM</div><div style="font-size:12px;margin-top:8px">${esc(m.summary.split('. ')[0])}.</div></div>`;
+    case 'slides':
+      return `<div class="preview"><div style="aspect-ratio:16/9;background:var(--panel);border-radius:8px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.1)"><div style="font-weight:700;font-size:14px;margin-bottom:8px">${esc(m.title)}</div>${m.moments.slice(0, 3).map(k => `<div style="font-size:11px;color:var(--text-2)">• ${esc(k.label)}</div>`).join('')}</div></div>`;
+    case 'pdf':
+      return `<div class="preview">${head}<div style="font-weight:600">${esc(m.title)}</div><div style="color:var(--text-2);font-size:12px;margin-top:4px">${esc(m.summary)}</div><div style="color:var(--text-3);font-size:11px;margin-top:8px">1 page</div></div>`;
+    default: // notes, insights, markdown, text
+      return `<div class="preview mono">${head}# ${esc(m.title)}\n${esc(when(m.createdAt))}\n\n${esc(m.summary)}\n${m.moments.length ? `\n## Key moments\n${m.moments.map(k => `- ${fmt(k.t)} ${esc(k.label)}`).join('\n')}` : ''}${openItems.length ? `\n\n## ${m.category === 'meeting' ? 'Action items' : 'To do'}\n${openItems.map(i => `- [ ] ${esc(i.text)}`).join('\n')}` : ''}</div>`;
+  }
+}
+
+function doExport(key) {
+  const m = exportUI.memo; const f = FORMATS[key];
+  let resolve = !!f.resolves && m.items.some(i => !i.done);
+  const draw = () => {
+    exportUI.el.innerHTML = `<div class="sheet">
+      <div class="sheet-head"><button class="back-sheet" id="backSheet">‹ Back</button><button class="close" id="closeSheet2">✕</button></div>
+      <div class="done-view">
+        <div class="check"><svg width="24" height="20" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>${esc(f.name)} ready</h3>
+        <div class="where">${esc(f.where)}</div>
+        ${previewFor(key, m)}
+        ${m.items.some(i => !i.done) ? `<div class="resolve-row"><span>Mark memo as resolved</span><button class="switch ${resolve ? 'on' : ''}" id="resolveSw" aria-label="Mark as resolved"></button></div>` : ''}
+        <button class="primary" id="doneBtn">Done</button>
+      </div>
+    </div>`;
+    document.getElementById('backSheet').onclick = renderExportPicker;
+    document.getElementById('closeSheet2').onclick = closeExport;
+    const sw = document.getElementById('resolveSw'); if (sw) sw.onclick = () => { resolve = !resolve; draw(); };
+    document.getElementById('doneBtn').onclick = () => {
+      if (resolve) m.items.forEach(i => i.done = true);
+      closeExport(); render();
+      toast(resolve ? `${f.name} exported · memo resolved` : `${f.name} exported`);
+    };
+  };
+  draw();
+}
+
+// ---------------------------------------------------------------------------
+// Recording — Wizard of Oz. Nothing is captured; it just looks like it is.
+// ---------------------------------------------------------------------------
+const recording = { active: false, start: 0, timer: null };
+
+function startRecording() {
+  if (recording.active) return;
+  player.stop();
+  recording.active = true; recording.start = Date.now();
+  document.getElementById('app').classList.add('show-detail');
+  render();
+  recording.timer = setInterval(tickRecording, 120);
+}
+
+function renderRecording(el) {
+  el.innerHTML = `<div class="detail-inner rec-view">
+    <div class="live"><span class="rdot"></span>Recording</div>
+    <div class="wave" id="wave">${Array.from({ length: 48 }, () => '<span></span>').join('')}</div>
+    <div class="big-time" id="recTime">0:00</div>
+    <button class="stop-btn" id="stopBtn" aria-label="Stop"></button>
+    <div class="hint">Just talk. Sorting happens after.</div>
+  </div>`;
+  document.getElementById('stopBtn').onclick = stopRecording;
+  tickRecording();
+}
+
+function tickRecording() {
+  const t = (Date.now() - recording.start) / 1000;
+  const timeEl = document.getElementById('recTime'); if (timeEl) timeEl.textContent = fmt(t);
+  const bars = document.querySelectorAll('#wave span');
+  bars.forEach((b, i) => {
+    const env = Math.sin(t * 2.1 + i * 0.35) * 0.5 + 0.5;
+    const jitter = Math.random() * 0.6 + 0.2;
+    b.style.height = `${6 + env * jitter * 60}px`;
+  });
+}
+
+const recordedScripts = [
+  { title: 'Verse idea over the new chord loop', category: 'song', tags: ['verse', 'loop'],
+    summary: 'A half-sung verse melody over the four-chord loop from yesterday. The second line lands nicely; the first still feels rushed.',
+    moments: [ { f: 0.25, label: 'The second line, the one that works' }, { f: 0.8, label: 'Trying a slower first line' } ],
+    items: [ { kind: 'revisit', text: 'Fix the first line, keep the second' } ] },
+  { title: 'After the design sync', category: 'meeting', tags: ['design', 'sync'],
+    summary: 'The team agreed to move the settings menu into the sidebar. You promised to write up the decision and send Alex the mockup link.',
+    moments: [ { f: 0.3, label: 'Decision: settings goes in the sidebar' }, { f: 0.75, label: 'Alex asks for the mockup link' } ],
+    items: [ { kind: 'action', text: 'Write up the settings decision' }, { kind: 'action', text: 'Send Alex the mockup link' } ] },
+];
+let scriptIndex = 0;
+
+function stopRecording() {
+  clearInterval(recording.timer);
+  const duration = Math.max(3, Math.round((Date.now() - recording.start) / 1000));
+  recording.active = false;
+  const script = recordedScripts[scriptIndex++ % recordedScripts.length];
+  ingest({ title: 'New Recording', duration, createdAt: new Date().toISOString(), script });
+}
+
+// Shared mock enrichment for recorded and imported memos.
+function ingest({ title, duration, createdAt, src, script }) {
+  const memo = { id: 'u' + Date.now() + Math.random().toString(36).slice(2, 6), title, processing: true, category: 'note', tags: [], duration, createdAt, summary: '', moments: [], items: [], src };
+  state.memos.unshift(memo); state.selectedId = memo.id; state.filter = 'all'; render();
+  setTimeout(() => {
+    if (script) {
+      Object.assign(memo, {
+        processing: false, title: script.title, category: script.category, tags: script.tags, summary: script.summary,
+        moments: script.moments.map(k => ({ t: Math.round(k.f * duration), label: k.label })),
+        items: script.items.map((i, n) => ({ id: 'i' + Date.now() + n, ...i, done: false })),
+      });
+    } else {
+      const base = title.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
       Object.assign(memo, {
         processing: false,
         title: base.match(/^new recording/i) ? 'Untitled thought, worth a listen' : base.charAt(0).toUpperCase() + base.slice(1),
@@ -650,8 +1016,20 @@ document.getElementById('fileInput').onchange = async e => {
         moments: duration > 20 ? [ { t: Math.round(duration * 0.15), label: 'First idea introduced' }, { t: Math.round(duration * 0.62), label: 'The part you’d want to hear again' } ] : [],
         items: duration > 20 ? [ { id: 'i' + Date.now(), kind: 'revisit', text: 'Come back to this one', done: false } ] : [],
       });
-      render(); toast('Processed · ' + memo.title);
-    }, 1800 + Math.random() * 800);
+    }
+    render(); toast('Processed · ' + memo.title);
+  }, 1800 + Math.random() * 800);
+}
+
+// ---------------------------------------------------------------------------
+// Import (mock enrichment, real playback)
+// ---------------------------------------------------------------------------
+document.getElementById('fileInput').onchange = async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  for (const f of files) {
+    const src = URL.createObjectURL(f);
+    const duration = await new Promise(res => { const a = new Audio(src); a.onloadedmetadata = () => res(isFinite(a.duration) ? a.duration : 120); a.onerror = () => res(120); });
+    ingest({ title: f.name, duration, createdAt: new Date(f.lastModified || Date.now()).toISOString(), src });
   }
 };
 

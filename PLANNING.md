@@ -74,34 +74,60 @@ The daily job of the app is to move yellow to green. That gives users a reason t
 | Interview practice | No reflection yet | Reviewed, notes written |
 | Game reviewer | Not drafted | Pulled into a review draft |
 
-## 5. Surfacing — later, not now
+## 5. Export — the memo leaves as what you needed
+
+Nobody wants the audio back. They want what was *in* the audio, in the shape their next tool expects. Export is the fourth step after capture, understand, and triage.
+
+**Category decides the export shape.** Same logic as yellow/green: one pipeline, different vocabulary.
+
+| Category | Suggested exports |
+|---|---|
+| Meeting | Tasks (to Reminders), meeting notes (Markdown), follow-up email |
+| Song idea | MIDI, sheet music, trimmed audio stem, lyrics |
+| Interview | Key quotes (CSV), quote clips, insight sheet |
+| Note to self | Reminder, plain text |
+| Any | Markdown, PDF, plain text, trimmed audio |
+
+**The export sheet has three tiers:**
+
+1. **Suggested** — two to four big buttons chosen by category and content, each with a one-line preview of what you get.
+2. **More formats** — the generic ones, always available, never in the way.
+3. **"Something else?"** — a chat field. Describe what you need in plain words ("a table I can paste into Notion", "something Ableton can open"). The assistant replies with a concrete format, which appears as a new button. Formats found this way are remembered and suggested next time for that category. The chat is scoped to shaping exports only, not to answering questions about the memo.
+
+**Export can resolve the memo.** After a successful export, a "Mark as resolved" switch appears. It defaults on when action items were sent to a task tool, off otherwise. For musicians this gives green a concrete meaning: an idea is done when it has left for a project.
+
+*Demo: all Wizard of Oz. Buttons show a preview and a success state. The chat matches keywords to a handful of canned formats. Nothing is written to disk.*
+
+## 6. Surfacing — later, not now
 
 The long-term win over the native app is bringing forgotten memos back at a useful moment (digests, similarity links, calendar proximity, staleness nudges). None of that is in the demo. For now, the yellow list *is* the surfacing: anything pending is visible at the top, and that is enough to prove the idea.
 
-## 6. Open questions
+## 7. Open questions
 
-1. **Source of memos.** Import from Apple Voice Memos (messy) vs. record in our own app (clean, but changes a habit). *Hackathon lean: import a folder of audio, skip the recorder.*
+1. **Source of memos.** Record in-app so the full capture-to-triage workflow is visible, plus import for existing files. *Demo: recording is Wizard of Oz. The button and timer are real, the audio is not captured.*
 2. **How much does the user confirm?** Auto-classification will be wrong sometimes. A light "is this right?" on the first few memos could train per-user preferences and double as onboarding.
 3. **Which personas for the demo?** *Lean: musician + meeting dumper.* Same pipeline, visibly different outcomes.
 4. **What is "done" for a musician?** Fuzziest green state. Ask the musicians we talked to.
 5. **Privacy.** Audio is intimate. Is processing on-device, or cloud with clear consent?
 6. **What happens to green memos?** Archive with search, or do they also feed long-term knowledge (e.g. "what did I say about pricing across all meetings")?
 
-## 7. Demo narrative
+## 8. Demo narrative
 
 Keep it bare bones. One screen, one flow.
 
-1. Drop in a handful of unlabeled recordings.
+1. Tap Record, talk for a few seconds, tap Stop. Drop in a few older recordings too.
 2. Each one gets a title, suggested tags, a summary, and key moments. The list sorts into yellow and green.
 3. Open a long memo. Tap a key moment and jump straight to that spot in the audio.
 4. Open a meeting memo. See the action items that made it yellow.
-5. Check them off. The memo turns green.
+5. Tap Export. Pick Tasks, or type "a table for Notion" and take the format the assistant offers. Leave "Mark as resolved" on.
+6. The memo turns green.
 
 That is the whole demo.
 
-## 8. Scope for hackathon
+## 9. Scope for hackathon
 
 **In:**
+- Record button (simulated for the demo, no audio captured)
 - Import audio files
 - Title + summary + key moments (timestamped, tap to seek)
 - AI-suggested category and tags, editable after the fact
@@ -109,18 +135,18 @@ That is the whole demo.
 - Action item / revisit extraction → yellow/green state
 - Single list view, yellow on top
 - Mark items done → memo turns green
+- Export sheet: suggested formats by category, more formats, and a chat to find a format (simulated)
 
 **Out (for now):**
 - Full transcript view (the audio stays the source; we surface title, summary, and key moments instead)
 - Digests, nudges, or any notification
 - Similarity / idea linking
-- In-app recorder
+- Real audio capture and real AI processing (both faked in the demo)
 - Calendar / location integration
-- Task tool export
 - Multi-user / sharing
 - Mobile app (web is fine)
 
-## 9. Success criteria
+## 10. Success criteria
 
 - A new user can look at the sorted list and know what each memo is without playing it.
 - For a long memo, the user can jump to the important part without scrubbing.
