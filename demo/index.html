@@ -130,6 +130,28 @@
   .list-header { padding: 48px 20px 10px; }
   .list-header h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
   .list-header .sub { color: var(--text-2); margin-top: 2px; font-size: 12px; }
+  .search { position: relative; margin-top: 12px; }
+  .search .mag { position: absolute; left: 10px; top: 50%; transform: translateY(-52%); color: var(--text-3); font-size: 15px; pointer-events: none; }
+  .search input {
+    width: 100%; font: inherit; font-size: 13px; padding: 8px 30px 8px 30px; border-radius: 9px; border: 0;
+    background: var(--fill); color: var(--text); outline: none; transition: box-shadow .15s;
+  }
+  .search input::placeholder { color: var(--text-3); }
+  .search input:focus { box-shadow: 0 0 0 3px rgba(0,122,255,0.35); background: var(--panel); }
+  .search .clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; border-radius: 50%; background: var(--text-3); color: var(--bg); font-size: 10px; display: none; place-items: center; }
+  .search.has .clear { display: grid; }
+  .understood { padding: 12px 8px 4px; font-size: 12px; color: var(--text-2); line-height: 1.4; }
+  .understood b { font-weight: 600; color: var(--text); }
+  .understood .think { display: inline-flex; gap: 8px; align-items: center; color: var(--text-3); }
+  .understood .think .spinner { width: 12px; height: 12px; border-width: 1.5px; }
+  .row .why { font-size: 12px; color: var(--text-2); margin-top: 4px; line-height: 1.35; }
+  .row .why mark { background: rgba(255,204,0,0.35); color: inherit; border-radius: 3px; padding: 0 1px; }
+  .jump {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px;
+    background: var(--selected); color: var(--blue); padding: 3px 9px 3px 7px; border-radius: 999px; font-weight: 500;
+  }
+  .jump:hover { filter: brightness(0.95); }
+  .jump .ts { font-variant-numeric: tabular-nums; font-weight: 600; }
   .list-scroll { overflow-y: auto; padding: 0 12px 16px; }
   .group-title {
     position: sticky; top: 0; z-index: 1;
@@ -191,18 +213,23 @@
   .chip.ai { position: relative; }
   .chip.add { color: var(--blue); background: transparent; border: 1px dashed var(--fill-2); }
   .chip.add:hover { background: var(--fill); }
-  .select-wrap { position: relative; display: inline-flex; }
-  .select-wrap select {
-    appearance: none; -webkit-appearance: none;
-    font: inherit; font-size: 12px; font-weight: 500;
-    padding: 4px 24px 4px 10px; border-radius: 999px; border: 0;
-    background: var(--selected); color: var(--blue); cursor: pointer;
+  .tagchip { display: inline-flex; align-items: center; gap: 6px; padding-right: 6px; }
+  .tdot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex: none; }
+  .tagchip .rm { width: 16px; height: 16px; border-radius: 50%; font-size: 9px; color: var(--text-3); display: grid; place-items: center; margin-left: 2px; }
+  .tagchip .rm:hover { background: var(--fill-2); color: var(--text); }
+  .tagmenu-wrap { position: relative; display: inline-flex; }
+  .tagmenu {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; min-width: 200px;
+    background: var(--panel); border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.18), 0 0 0 1px var(--line);
+    padding: 6px; animation: rise .16s cubic-bezier(.2,.8,.2,1);
   }
-  .select-wrap::after {
-    content: ""; position: absolute; right: 10px; top: 50%; width: 6px; height: 6px;
-    border-right: 1.5px solid var(--blue); border-bottom: 1.5px solid var(--blue);
-    transform: translateY(-70%) rotate(45deg); pointer-events: none;
-  }
+  .tm { display: grid; grid-template-columns: 14px 1fr 14px; gap: 10px; align-items: center; width: 100%; text-align: left; padding: 7px 8px; border-radius: 7px; font-size: 13px; }
+  .tm:hover { background: var(--selected); }
+  .tm .ck { color: var(--blue); font-weight: 600; opacity: 0; font-size: 12px; }
+  .tm.on .ck { opacity: 1; }
+  .tm .tdot.plus { background: none; color: var(--text-2); font-size: 13px; line-height: 8px; }
+  .tm.new .nm { color: var(--text-2); }
+  .tm-sep { height: 1px; background: var(--line); margin: 4px 6px; }
 
   .card {
     background: var(--panel); border-radius: var(--radius); box-shadow: var(--shadow);
@@ -397,6 +424,11 @@
     <div class="list-header">
       <h1 id="listTitle">All Memos</h1>
       <div class="sub" id="listSub"></div>
+      <div class="search">
+        <span class="mag">⌕</span>
+        <input id="searchIn" placeholder="Ask your memos… “what did I promise Sam?”" autocomplete="off" spellcheck="false">
+        <button class="clear" id="searchClear" aria-label="Clear">✕</button>
+      </div>
     </div>
     <div class="list-scroll" id="listScroll"></div>
   </section>
@@ -409,21 +441,22 @@
 // ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
-const STORAGE_KEY = 'memos-demo-v1';
+const STORAGE_KEY = 'memos-demo-v2';
 
-const defaultCategories = [
-  { id: 'song',    name: 'Song idea',     color: '#af52de' },
-  { id: 'meeting', name: 'Meeting',       color: '#007aff' },
-  { id: 'note',    name: 'Note to self',  color: '#ff9500' },
-  { id: 'interview', name: 'Interviews',  color: '#5ac8fa' },
+const defaultTags = [
+  { id: 'song',      name: 'Song idea',    color: '#af52de' },
+  { id: 'meeting',   name: 'Meeting',      color: '#007aff' },
+  { id: 'note',      name: 'Note to self', color: '#ff9500' },
+  { id: 'interview', name: 'Interview',    color: '#5ac8fa' },
+  { id: 'rehearsal', name: 'Rehearsal',    color: '#ff2d55' },
 ];
 
 const daysAgo = (n, h = 10, m = 0) => { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(h, m, 0, 0); return d.toISOString(); };
 
 const seedMemos = [
   {
-    id: 'm1', title: '1:1 with Sam — career growth and Q4 goals', category: 'meeting',
-    tags: ['Sam', '1:1', 'Q4'], duration: 2712, createdAt: daysAgo(0, 14, 5),
+    id: 'm1', title: '1:1 with Sam — career growth and Q4 goals',
+    tags: ['meeting'], duration: 2712, createdAt: daysAgo(0, 14, 5),
     summary: 'Sam wants to move toward a tech-lead role. You agreed to put together a growth plan and find a project they can own. Also flagged that the design review process is slowing their team down.',
     moments: [
       { t: 190,  label: 'Sam brings up wanting the tech-lead path' },
@@ -436,8 +469,8 @@ const seedMemos = [
     ],
   },
   {
-    id: 'm2', title: 'Bridge idea in D minor', category: 'song',
-    tags: ['D minor', 'bridge', 'humming'], duration: 48, createdAt: daysAgo(0, 23, 40),
+    id: 'm2', title: 'Bridge idea in D minor',
+    tags: ['song'], duration: 48, createdAt: daysAgo(0, 23, 40),
     summary: 'A descending bridge melody hummed over an implied D minor to B-flat progression. You said it might work under the chorus of the song you were working on last week.',
     moments: [
       { t: 6,  label: 'The descending line starts' },
@@ -448,8 +481,8 @@ const seedMemos = [
     ],
   },
   {
-    id: 'm3', title: 'Standup debrief — API launch slipping', category: 'meeting',
-    tags: ['API', 'launch', 'standup'], duration: 754, createdAt: daysAgo(1, 9, 32),
+    id: 'm3', title: 'Standup debrief — API launch slipping',
+    tags: ['meeting'], duration: 754, createdAt: daysAgo(1, 9, 32),
     summary: 'The API launch is likely to slip a week because of auth edge cases. You need to tell marketing before Thursday and decide whether to cut the batch endpoint from v1.',
     moments: [
       { t: 95,  label: 'Why the auth edge cases are blocking' },
@@ -463,8 +496,8 @@ const seedMemos = [
     ],
   },
   {
-    id: 'm4', title: 'Interview with Priya — onboarding friction', category: 'interview',
-    tags: ['onboarding', 'research', 'Priya'], duration: 1931, createdAt: daysAgo(2, 15, 0),
+    id: 'm4', title: 'Interview with Priya — onboarding friction',
+    tags: ['interview'], duration: 1931, createdAt: daysAgo(2, 15, 0),
     summary: 'Priya dropped off during account setup twice because the verification email landed in spam. She said the empty dashboard after signup made her unsure it had worked.',
     moments: [
       { t: 240,  label: '“I thought it just didn’t work”' },
@@ -476,8 +509,8 @@ const seedMemos = [
     ],
   },
   {
-    id: 'm5', title: 'Chorus melody, second pass', category: 'song',
-    tags: ['chorus', 'melody'], duration: 72, createdAt: daysAgo(4, 21, 15),
+    id: 'm5', title: 'Chorus melody, second pass',
+    tags: ['song', 'rehearsal'], duration: 72, createdAt: daysAgo(4, 21, 15),
     summary: 'A brighter take on the chorus melody with a lift on the last line. You sounded happy with it and said it was ready to bring to rehearsal.',
     moments: [
       { t: 12, label: 'The lift on the last line' },
@@ -487,8 +520,8 @@ const seedMemos = [
     ],
   },
   {
-    id: 'm6', title: 'Grocery run and call Mom back', category: 'note',
-    tags: ['errands'], duration: 19, createdAt: daysAgo(5, 18, 2),
+    id: 'm6', title: 'Grocery run and call Mom back',
+    tags: ['note'], duration: 19, createdAt: daysAgo(5, 18, 2),
     summary: 'Eggs, oat milk, basil. Call Mom back about the weekend.',
     moments: [],
     items: [
@@ -496,15 +529,15 @@ const seedMemos = [
     ],
   },
   {
-    id: 'm7', title: 'Parked on level 3, near the elevator', category: 'note',
-    tags: ['parking'], duration: 6, createdAt: daysAgo(6, 8, 45),
+    id: 'm7', title: 'Parked on level 3, near the elevator',
+    tags: ['note'], duration: 6, createdAt: daysAgo(6, 8, 45),
     summary: 'Car is on level 3 by the elevator.',
     moments: [],
     items: [],
   },
 ];
 
-let state = load() || { categories: defaultCategories, memos: seedMemos, filter: 'all', selectedId: 'm1' };
+let state = load() || { tags: defaultTags, memos: seedMemos, filter: 'all', selectedId: 'm1' };
 
 function load() {
   try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
@@ -521,7 +554,10 @@ function save() {
 // ---------------------------------------------------------------------------
 const isPending = m => m.items.some(i => !i.done);
 const statusOf = m => m.processing ? 'gray' : isPending(m) ? 'yellow' : 'green';
-const cat = id => state.categories.find(c => c.id === id);
+const tag = id => state.tags.find(c => c.id === id);
+const tagNames = m => m.tags.map(id => tag(id)?.name).filter(Boolean);
+const PEOPLE_STOP = new Set(['You','The','This','That','Sam’s','Decision','Reminder','Why','What','Trying','Try','She','He','They','Verification','Car','Eggs','Call','Also','Tomorrow','Priya’s','Oat']);
+const peopleIn = m => [...new Set((m.title + ' ' + m.summary + ' ' + m.items.map(i => i.text).join(' ') + ' ' + m.moments.map(k => k.label).join(' ')).match(/\b[A-Z][a-z]{2,}\b/g) || [])].filter(w => !PEOPLE_STOP.has(w) && !/^(Grocery|Standup|Bridge|Chorus|Interview|Parked|Verse|After|Quick|Draft|Ask|Tell|Decide|Follow|Pull|Bring|Fix|Write|Send|Look|Come|Untitled|New|First|Design|Notifications|Thursday|Logic|Ableton|Markdown|Notion|Linear|Jira|Reminders|Mail|Downloads|Processing|Resolved|Pending|Meeting|Song|Note|Rehearsal)$/.test(w));
 const fmt = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return h ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`; };
 function when(iso) {
   const d = new Date(iso), now = new Date();
@@ -590,26 +626,148 @@ function renderSidebar() {
     ${nav('all', 'All Memos', m.length, '◉')}
     ${nav('pending', 'Pending', m.filter(x => !x.processing && isPending(x)).length, '', 'var(--yellow)')}
     ${nav('resolved', 'Resolved', m.filter(x => !x.processing && !isPending(x)).length, '', 'var(--green)')}
-    <h6>Categories</h6>
-    ${state.categories.map(c => nav('cat:' + c.id, c.name, m.filter(x => x.category === c.id).length, '', c.color)).join('')}
-    <button class="nav add" id="addCat"><span class="glyph">＋</span><span class="label">New Category</span></button>
+    <h6>Tags</h6>
+    ${state.tags.map(c => nav('tag:' + c.id, c.name, m.filter(x => x.tags.includes(c.id)).length, '', c.color)).join('')}
+    <button class="nav add" id="addTagNav"><span class="glyph">＋</span><span class="label">New Tag</span></button>
     <div class="spacer"></div>
     <button class="record-btn" id="recordBtn"><span class="rdot"></span>Record</button>
     <button class="import secondary" id="importBtn">↑&nbsp; Import Memos</button>`;
-  document.querySelectorAll('.nav[data-filter]').forEach(b => b.onclick = () => { state.filter = b.dataset.filter; render(); });
-  document.getElementById('addCat').onclick = addCategory;
+  document.querySelectorAll('.nav[data-filter]').forEach(b => b.onclick = () => { state.filter = b.dataset.filter; document.getElementById('searchIn').value = ''; onSearchInput(''); render(); });
+  document.getElementById('addTagNav').onclick = () => addTag();
   document.getElementById('importBtn').onclick = () => document.getElementById('fileInput').click();
   document.getElementById('recordBtn').onclick = startRecording;
 }
 
 function filteredMemos() {
   const f = state.filter;
-  return state.memos.filter(m => f === 'all' ? true : f === 'pending' ? (!m.processing && isPending(m)) : f === 'resolved' ? (!m.processing && !isPending(m)) : m.category === f.slice(4));
+  return state.memos.filter(m => f === 'all' ? true : f === 'pending' ? (!m.processing && isPending(m)) : f === 'resolved' ? (!m.processing && !isPending(m)) : m.tags.includes(f.slice(4)));
+}
+
+// ---------------------------------------------------------------------------
+// Search — Wizard of Oz. Keyword matching with a plain-English explanation.
+// ---------------------------------------------------------------------------
+const search = { q: '', thinking: false, timer: null };
+const STOP = new Set('a an the of to in on at for with about from and or is are was were be been i me my we our you your it this that those these what which who when where did do does have has had any anything something some all find show me get give tell remember said say says about re regarding into'.split(' '));
+
+function understand(q) {
+  const lq = q.toLowerCase();
+  const parts = []; const f = {};
+  if (/\b(today)\b/.test(lq)) { f.days = 0; parts.push('from today'); }
+  else if (/\byesterday\b/.test(lq)) { f.days = 1; parts.push('from yesterday'); }
+  else if (/this week|past week|last few days|recently|lately/.test(lq)) { f.within = 7; parts.push('from this week'); }
+  else if (/last week/.test(lq)) { f.within = 14; parts.push('from the last two weeks'); }
+  if (/pending|unresolved|still (need|have) to|to ?do|haven.?t (done|finished)|open items|action items|need to do|should do|owe|promise|agreed|committed|follow ?up/.test(lq)) { f.pending = true; parts.push('still pending'); }
+  if (/resolved|done|finished|closed/.test(lq) && !f.pending) { f.resolved = true; parts.push('already resolved'); }
+  if (/promise|owe|agreed|committed|told (him|her|them)|said i.?d|i said/.test(lq)) { f.commit = true; parts.unshift('commitments you made'); }
+  if (/decision|decided|agreed on|we agreed/.test(lq)) { f.decision = true; parts.push('decisions'); }
+  if (/quote|said something|what did .* say/.test(lq)) { f.quote = true; parts.push('things people said'); }
+  const catWords = { song: /song|melody|riff|hum|chorus|verse|bridge|lyric|music|idea in [a-g]/, meeting: /meeting|standup|1:1|one.on.one|sync|debrief/, interview: /interview|research|participant|user/, note: /note to self|reminder|errand|parked|parking|grocer/ };
+  for (const [k, re] of Object.entries(catWords)) if (re.test(lq) && tag(k)) { f.cat = k; parts.push(`tagged ${tag(k).name}`); break; }
+  if (!f.cat) { const userTag = state.tags.find(t => lq.includes(t.name.toLowerCase())); if (userTag) { f.cat = userTag.id; parts.push(`tagged ${esc(userTag.name)}`); } }
+  const names = [...new Set(state.memos.flatMap(peopleIn))];
+  const person = names.find(n => new RegExp(`\\b${n.toLowerCase()}\\b`).test(lq));
+  if (person) { f.person = person; parts.push(`mentioning <b>${esc(person)}</b>`); }
+  const keyMatch = lq.match(/\b([a-g])\s?(minor|major|sharp|flat|#|m)\b/); if (keyMatch) { f.key = keyMatch[0]; parts.push(`in <b>${esc(keyMatch[1].toUpperCase() + ' ' + keyMatch[2])}</b>`); }
+  const tokens = lq.replace(/[^a-z0-9#' ]/g, ' ').split(/\s+/).filter(t => t && !STOP.has(t) && t.length > 2 && !(person && t === person.toLowerCase()));
+  f.tokens = tokens;
+  const topical = tokens.filter(t => !/^(today|yesterday|week|pending|done|promise|promised|owe|agreed|song|songs|meeting|meetings|interview|interviews|note|notes|minor|major|decision|decisions|decided|quote|quotes|recently|lately|still|need|action|items|follow|idea|ideas|memo|memos|voice|recording|recordings|tagged|tag)$/.test(t) && !state.tags.some(x => x.name.toLowerCase().split(/\s+/).includes(t)));
+  if (topical.length) parts.push(`about <b>${esc(topical.slice(0, 3).join(', '))}</b>`);
+  f.topical = topical;
+  f.label = parts.length ? parts.join(' · ') : 'anything that sounds like this';
+  return f;
+}
+
+function hl(text, tokens) {
+  if (!tokens.length) return esc(text);
+  const re = new RegExp(`(${tokens.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'ig');
+  return esc(text).replace(re, '<mark>$1</mark>');
+}
+
+function runSearch(q) {
+  const f = understand(q);
+  const now = new Date();
+  const results = [];
+  for (const m of state.memos) {
+    if (m.processing) continue;
+    const d = new Date(m.createdAt); const age = (now - d) / 864e5;
+    if (f.days === 0 && d.toDateString() !== now.toDateString()) continue;
+    if (f.days === 1) { const y = new Date(now); y.setDate(now.getDate() - 1); if (d.toDateString() !== y.toDateString()) continue; }
+    if (f.within && age > f.within) continue;
+    if (f.pending && !isPending(m)) continue;
+    if (f.resolved && isPending(m)) continue;
+    if (f.cat && !m.tags.includes(f.cat)) continue;
+    const people = peopleIn(m);
+    if (f.person && !people.includes(f.person)) continue;
+    const hay = (s) => s.toLowerCase();
+    let score = 0; let why = null; let moment = null; let item = null;
+    const hasAnyFilter = f.days !== undefined || f.within || f.pending || f.resolved || f.cat || f.person || f.key || f.commit || f.decision || f.quote;
+    const toks = f.topical.length ? f.topical : (hasAnyFilter ? [] : f.tokens);
+    const hit = (txt) => toks.filter(t => hay(txt).includes(t)).length;
+    score += hit(m.title) * 3 + hit(m.summary) * 2 + hit(tagNames(m).join(' ')) * 3;
+    for (const k of m.moments) { const h = hit(k.label) + (f.decision && /decision/i.test(k.label) ? 2 : 0) + (f.quote && /[“"]/.test(k.label) ? 2 : 0); if (h && (!moment || h > moment.h)) moment = { ...k, h }; }
+    for (const i of m.items) { const h = hit(i.text) + (f.commit && !i.done ? 2 : 0) + (f.pending && !i.done ? 1 : 0); if (h && (!item || h > item.h)) item = { ...i, h }; }
+    if (moment) score += moment.h * 3; if (item) score += item.h * 3;
+    if (f.key && (hay(m.title).includes(f.key) || hay(m.summary).includes(f.key))) score += 6;
+    if (f.person && hay(m.title).includes(f.person.toLowerCase())) score += 4;
+    const hasFilter = f.days !== undefined || f.within || f.pending || f.resolved || f.cat || f.person || f.key || f.commit || f.decision || f.quote;
+    if (score === 0 && !(hasFilter && f.topical.length === 0)) continue;
+    if (score === 0 && hasFilter) score = 1;
+    if (item && (f.commit || f.pending || item.h > (moment?.h || 0))) why = `<span class="why">☐ ${hl(item.text, toks)}</span>`;
+    else if (moment) why = `<span class="why">${hl(moment.label, toks)}</span>`;
+    else if (hit(m.summary)) { const sent = m.summary.split(/(?<=\.)\s/).find(x => hit(x)) || m.summary; why = `<span class="why">${hl(sent, toks)}</span>`; }
+    results.push({ m, score, why, moment: moment && (f.commit ? null : moment) });
+  }
+  results.sort((a, b) => b.score - a.score || new Date(b.m.createdAt) - new Date(a.m.createdAt));
+  return { f, results };
+}
+
+function onSearchInput(v) {
+  search.q = v;
+  document.querySelector('.search').classList.toggle('has', !!v);
+  clearTimeout(search.timer);
+  if (!v.trim()) { search.thinking = false; renderList(); return; }
+  search.thinking = true; renderList();
+  search.timer = setTimeout(() => { search.thinking = false; renderList(); }, 450 + Math.min(500, v.length * 25));
+}
+
+document.getElementById('searchIn').addEventListener('input', e => onSearchInput(e.target.value));
+document.getElementById('searchIn').addEventListener('keydown', e => { if (e.key === 'Escape') { e.target.value = ''; onSearchInput(''); e.target.blur(); } });
+document.getElementById('searchClear').onclick = () => { const i = document.getElementById('searchIn'); i.value = ''; onSearchInput(''); i.focus(); };
+document.addEventListener('keydown', e => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); document.getElementById('searchIn').focus(); } });
+
+function renderSearchResults() {
+  const scroll = document.getElementById('listScroll');
+  document.getElementById('listTitle').textContent = 'Search';
+  document.getElementById('listSub').innerHTML = '';
+  if (search.thinking) { scroll.innerHTML = `<div class="understood"><span class="think"><span class="spinner"></span>Listening through your memos…</span></div>`; return; }
+  const { f, results } = runSearch(search.q);
+  const row = r => {
+    const m = r.m;
+    return `<button class="row ${m.id === state.selectedId ? 'active' : ''}" data-id="${m.id}">
+      <span class="dot ${statusOf(m)}"></span>
+      <span>
+        <div class="title">${esc(m.title)}</div>
+        <div class="meta"><span class="cat">${esc(tagNames(m).join(', '))}</span><span class="sep">·</span><span>${fmt(m.duration)}</span></div>
+        ${r.why || ''}
+        ${r.moment ? `<span class="jump" data-id="${m.id}" data-t="${r.moment.t}">▶ <span class="ts">${fmt(r.moment.t)}</span> Jump to this</span>` : ''}
+      </span>
+      <span class="time">${shortWhen(m.createdAt)}</span>
+    </button>`;
+  };
+  scroll.innerHTML = `<div class="understood">Looking for ${f.label}. ${results.length ? `<b>${results.length}</b> ${results.length === 1 ? 'memo' : 'memos'}.` : ''}</div>` +
+    (results.length ? results.map(row).join('') : `<div class="empty">Nothing matched. Try a name, a day, or what the memo was about.</div>`);
+  scroll.querySelectorAll('.row').forEach(b => b.onclick = e => {
+    state.selectedId = b.dataset.id; document.getElementById('app').classList.add('show-detail');
+    const j = e.target.closest('.jump');
+    renderSidebar(); renderDetail(); save(); renderList();
+    if (j) { player.seek(+j.dataset.t); if (!player.playing) player.toggle(); }
+  });
 }
 
 function renderList() {
+  if (search.q.trim()) { renderSearchResults(); return; }
   const f = state.filter;
-  const title = f === 'all' ? 'All Memos' : f === 'pending' ? 'Pending' : f === 'resolved' ? 'Resolved' : (cat(f.slice(4))?.name || 'Memos');
+  const title = f === 'all' ? 'All Memos' : f === 'pending' ? 'Pending' : f === 'resolved' ? 'Resolved' : (tag(f.slice(4))?.name || 'Memos');
   document.getElementById('listTitle').textContent = title;
   const list = filteredMemos().slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const pending = list.filter(m => m.processing || isPending(m));
@@ -619,13 +777,13 @@ function renderList() {
   const rbtn2 = document.getElementById('recordBtn2'); if (rbtn2) rbtn2.onclick = startRecording;
 
   const row = m => {
-    const c = cat(m.category); const n = m.items.filter(i => !i.done).length;
+    const n = m.items.filter(i => !i.done).length;
     return `<button class="row ${m.id === state.selectedId ? 'active' : ''} ${m.processing ? 'processing' : ''}" data-id="${m.id}">
       <span class="dot ${statusOf(m)}"></span>
       <span>
         <div class="title">${esc(m.title)}</div>
         <div class="meta">
-          ${m.processing ? '<span>Processing…</span>' : `<span class="cat">${esc(c?.name || 'Uncategorized')}</span>
+          ${m.processing ? '<span>Processing…</span>' : `<span class="cat">${esc(tagNames(m).join(', ') || 'Untagged')}</span>
           <span class="sep">·</span><span>${fmt(m.duration)}</span>
           ${n ? `<span class="sep">·</span><span class="pend">${n} pending</span>` : ''}`}
         </div>
@@ -647,7 +805,7 @@ function renderDetail() {
   const m = state.memos.find(x => x.id === state.selectedId);
   if (!m) { el.innerHTML = `<div class="placeholder">Select a memo</div>`; return; }
   player.bind(m);
-  const st = statusOf(m); const c = cat(m.category);
+  const st = statusOf(m);
   const open = m.items.filter(i => !i.done).length;
 
   if (m.processing) {
@@ -669,13 +827,9 @@ function renderDetail() {
     <h2>${esc(m.title)}</h2>
     <div class="when">${when(m.createdAt)} · ${fmt(m.duration)}</div>
 
-    <div class="chips">
-      <span class="select-wrap"><select id="catSelect">
-        ${state.categories.map(x => `<option value="${x.id}" ${x.id === m.category ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}
-        <option value="__new">New category…</option>
-      </select></span>
-      ${m.tags.map(t => `<span class="chip">${esc(t)}</span>`).join('')}
-      <button class="chip add" id="addTag">＋ Tag</button>
+    <div class="chips" id="chips">
+      ${m.tags.map(id => tag(id)).filter(Boolean).map(t => `<span class="chip tagchip" style="--c:${t.color}"><span class="tdot"></span>${esc(t.name)}<button class="rm" data-rm="${t.id}" aria-label="Remove tag">✕</button></span>`).join('')}
+      <span class="tagmenu-wrap"><button class="chip add" id="addTagBtn">＋ Tag</button><div class="tagmenu" id="tagMenu" hidden></div></span>
     </div>
 
     <div class="card">
@@ -715,12 +869,8 @@ function renderDetail() {
     render();
     if (wasPending && !nowPending) toast('Resolved · nothing left to deal with');
   });
-  document.getElementById('catSelect').onchange = e => {
-    if (e.target.value === '__new') { const id = addCategory(); if (id) { m.category = id; } }
-    else m.category = e.target.value;
-    render();
-  };
-  document.getElementById('addTag').onclick = () => { const t = prompt('Add a tag'); if (t && t.trim()) { m.tags.push(t.trim()); render(); } };
+  el.querySelectorAll('.rm').forEach(b => b.onclick = e => { e.stopPropagation(); m.tags = m.tags.filter(x => x !== b.dataset.rm); render(); });
+  document.getElementById('addTagBtn').onclick = e => { e.stopPropagation(); toggleTagMenu(m); };
   document.getElementById('exportBtn').onclick = () => openExport(m);
   renderPlayer();
 }
@@ -740,16 +890,36 @@ function renderPlayer() {
   });
 }
 
-function addCategory() {
-  const name = prompt('New category name');
+function addTag(memo) {
+  const name = prompt('New tag name');
   if (!name || !name.trim()) return null;
-  const palette = ['#ff2d55', '#5856d6', '#00c7be', '#ff9f0a', '#64d2ff', '#bf5af2'];
-  const c = { id: 'c' + Date.now(), name: name.trim(), color: palette[state.categories.length % palette.length] };
-  state.categories.push(c); render(); return c.id;
+  const existing = state.tags.find(t => t.name.toLowerCase() === name.trim().toLowerCase());
+  const palette = ['#5856d6', '#00c7be', '#ff9f0a', '#64d2ff', '#bf5af2', '#34c759'];
+  const t = existing || { id: 't' + Date.now(), name: name.trim(), color: palette[state.tags.length % palette.length] };
+  if (!existing) state.tags.push(t);
+  if (memo && !memo.tags.includes(t.id)) memo.tags.push(t.id);
+  render(); return t.id;
+}
+
+function toggleTagMenu(m) {
+  const menu = document.getElementById('tagMenu');
+  if (!menu.hidden) { menu.hidden = true; return; }
+  menu.innerHTML = state.tags.map(t => `<button class="tm ${m.tags.includes(t.id) ? 'on' : ''}" data-id="${t.id}"><span class="tdot" style="--c:${t.color}"></span><span class="nm">${esc(t.name)}</span><span class="ck">✓</span></button>`).join('')
+    + `<div class="tm-sep"></div><button class="tm new" id="tmNew"><span class="tdot plus">＋</span><span class="nm">New tag…</span></button>`;
+  menu.hidden = false;
+  menu.querySelectorAll('.tm[data-id]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const id = b.dataset.id;
+    m.tags = m.tags.includes(id) ? m.tags.filter(x => x !== id) : [...m.tags, id];
+    render(); toggleTagMenu(state.memos.find(x => x.id === m.id)); // keep menu open after re-render
+  });
+  document.getElementById('tmNew').onclick = e => { e.stopPropagation(); addTag(m); };
+  const close = ev => { if (!menu.contains(ev.target)) { menu.hidden = true; document.removeEventListener('click', close); } };
+  setTimeout(() => document.addEventListener('click', close), 0);
 }
 
 // ---------------------------------------------------------------------------
-// Export — Wizard of Oz. Suggested formats by category, then a chat to find more.
+// Export — Wizard of Oz. Suggested formats by tag, then a chat to find more.
 // ---------------------------------------------------------------------------
 if (!state.customFormats) state.customFormats = {};
 
@@ -780,15 +950,20 @@ const FORMATS = {
 
 function suggestedFormats(m) {
   const open = m.items.some(i => !i.done);
-  const base = {
+  const byTag = {
     meeting:   [open ? 'tasks' : null, 'notes', 'email'],
     song:      ['midi', 'sheet', 'stem', 'lyrics'],
     interview: ['quotes', 'clips', 'insights'],
     note:      [open ? 'reminder' : null, 'text', 'markdown'],
-  }[m.category] || ['markdown', 'text', 'audio'];
-  const custom = state.customFormats[m.category] || [];
-  return [...new Set([...base.filter(Boolean), ...custom])];
+    rehearsal: ['stem', 'midi'],
+  };
+  const base = m.tags.flatMap(t => byTag[t] || []);
+  if (!base.length) base.push('markdown', 'text', 'audio');
+  const custom = m.tags.flatMap(t => state.customFormats[t] || []);
+  return [...new Set([...base.filter(Boolean), ...custom])].slice(0, 4);
 }
+const has = (m, t) => m.tags.includes(t);
+const primaryTag = m => m.tags[0] || 'untagged';
 
 const exportUI = { memo: null, el: null, msgs: [], proposed: [] };
 
@@ -812,7 +987,7 @@ function renderExportPicker() {
   const more = ['markdown', 'pdf', 'text', 'audio'].filter(k => !sugg.includes(k));
   exportUI.el.innerHTML = `<div class="sheet">
     <div class="sheet-head"><div><h3>Export as…</h3><div class="sub">What do you want this memo to become?</div></div><button class="close" id="closeSheet">✕</button></div>
-    <h5>Suggested for ${esc(cat(m.category)?.name || 'this memo')}</h5>
+    <h5>Suggested for ${esc(tagNames(m).join(' + ') || 'this memo')}</h5>
     <div class="fmt-grid">${sugg.map(k => fmtButton(k, false)).join('')}</div>
     ${exportUI.proposed.length ? `<h5>From your request</h5><div class="fmt-grid">${exportUI.proposed.map(k => fmtButton(k, true)).join('')}</div>` : ''}
     <h5>More formats</h5>
@@ -842,22 +1017,22 @@ function askAssistant(text) {
   if (/lead sheet|chords|chord chart/.test(q)) r = pick('leadsheet', 'I can lay it out as a lead sheet: key, chords, and the melody on one page.');
   else if (/sheet music|notation|score|staff|notate/.test(q)) r = pick('sheet', 'Sheet music it is. The melody notated on a staff with key signature and tempo.');
   else if (/ableton|logic|daw|garageband|fl studio|midi|piano roll/.test(q)) r = pick('midi', 'MIDI is the one. It drops straight into any DAW with the melody quantized to tempo.');
-  else if (/table|spreadsheet|excel|sheets|grid/.test(q) && m.category === 'meeting') r = pick('table', 'How about a table of decisions and owners? It pastes cleanly into Notion or a doc.');
+  else if (/table|spreadsheet|excel|sheets|grid/.test(q) && has(m, 'meeting')) r = pick('table', 'How about a table of decisions and owners? It pastes cleanly into Notion or a doc.');
   else if (/csv|spreadsheet|excel|table/.test(q)) r = pick('csv', 'A CSV with one row per key moment, timestamp and label, works for that.');
   else if (/text|message|sms|slack|send|tell/.test(q)) r = pick('message', 'Here is a two-line message you can send as is.');
   else if (/email|mail/.test(q)) r = pick('email', 'A short follow-up email draft, addressed to the people you mentioned.');
   else if (/calendar|schedule|meeting|event|date/.test(q)) r = pick('calendar', 'I can put a follow-up on your calendar with the summary in the notes.');
   else if (/slide|deck|keynote|powerpoint|present/.test(q)) r = pick('slides', 'One slide with the key points, ready to drop into a deck.');
   else if (/pdf|print/.test(q)) r = pick('pdf', 'A one-page PDF summary should do it.');
-  else if (/notion|doc|google|markdown|notes/.test(q)) r = pick(m.category === 'meeting' ? 'notes' : 'markdown', 'Markdown is the safest bet. It pastes into Notion, Google Docs, or Obsidian without losing structure.');
-  else if (/audio|clip|wav|mp3|sound|recording/.test(q)) r = pick(m.category === 'song' ? 'stem' : 'audio', 'I can give you just the useful part of the recording, trimmed and cleaned up.');
+  else if (/notion|doc|google|markdown|notes/.test(q)) r = pick(has(m, 'meeting') ? 'notes' : 'markdown', 'Markdown is the safest bet. It pastes into Notion, Google Docs, or Obsidian without losing structure.');
+  else if (/audio|clip|wav|mp3|sound|recording/.test(q)) r = pick(has(m, 'song') || has(m, 'rehearsal') ? 'stem' : 'audio', 'I can give you just the useful part of the recording, trimmed and cleaned up.');
   else if (/remind|todo|task|later/.test(q)) r = pick(m.items.length > 1 ? 'tasks' : 'reminder', 'I will turn what you asked yourself to do into Reminders.');
-  else if (/suggest|recommend|don.?t know|dunno|idk|not sure|what would/.test(q)) { const k = suggestedFormats(m)[0]; r = pick(k, `For a ${(cat(m.category)?.name || 'memo').toLowerCase()} like this, I would go with ${FORMATS[k].name}. ${typeof FORMATS[k].pv === 'function' ? FORMATS[k].pv(m) : FORMATS[k].pv}.`); }
+  else if (/suggest|recommend|don.?t know|dunno|idk|not sure|what would/.test(q)) { const k = suggestedFormats(m)[0]; r = pick(k, `For a ${(tagNames(m)[0] || 'memo').toLowerCase()} like this, I would go with ${FORMATS[k].name}. ${typeof FORMATS[k].pv === 'function' ? FORMATS[k].pv(m) : FORMATS[k].pv}.`); }
   else r = pick('markdown', 'I am not sure of the exact tool, so here is a Markdown version with the summary, key moments, and anything pending. Tell me where it is going and I can shape it better.');
   setTimeout(() => {
     exportUI.msgs.push({ who: 'ai', text: r.reply });
     if (!exportUI.proposed.includes(r.k) && !suggestedFormats(m).includes(r.k)) exportUI.proposed.push(r.k);
-    const list = state.customFormats[m.category] = state.customFormats[m.category] || [];
+    const pt = primaryTag(m); const list = state.customFormats[pt] = state.customFormats[pt] || [];
     if (!list.includes(r.k) && !suggestedFormats(m).includes(r.k)) { list.push(r.k); save(); }
     renderExportPicker();
   }, 700 + Math.random() * 500);
@@ -871,12 +1046,12 @@ function previewFor(key, m) {
   const openItems = m.items.filter(i => !i.done);
   switch (key) {
     case 'tasks': case 'reminder':
-      return `<div class="preview">${(openItems.length ? openItems : m.items).map(i => `<div class="li"><i></i>${esc(i.text)}</div>`).join('')}<div style="color:var(--text-3);font-size:11px;margin-top:8px">List: ${esc(cat(m.category)?.name)} · Due tomorrow 9:00 AM</div></div>`;
+      return `<div class="preview">${(openItems.length ? openItems : m.items).map(i => `<div class="li"><i></i>${esc(i.text)}</div>`).join('')}<div style="color:var(--text-3);font-size:11px;margin-top:8px">List: ${esc(tagNames(m)[0] || 'Memos')} · Due tomorrow 9:00 AM</div></div>`;
     case 'midi': {
       let seed = 0; for (const ch of m.id) seed = (seed * 31 + ch.charCodeAt(0)) & 0xffff;
       const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
       const notes = Array.from({ length: 14 }, (_, i) => `<span style="grid-row:${1 + Math.floor(rnd() * 8)}; grid-column:${i * 2 + 1} / span ${1 + Math.floor(rnd() * 2)}"></span>`).join('');
-      return `<div class="preview">${head}<div class="pr" style="grid-template-columns:repeat(28,1fr)">${notes}</div><div style="color:var(--text-3);font-size:11px;margin-top:8px">${m.category === 'song' ? 'D minor · 92 BPM' : 'Detected key and tempo'} · ${fmt(m.moments[0]?.t || 0)}–${fmt((m.moments[0]?.t || 0) + 14)} · 14 notes</div></div>`;
+      return `<div class="preview">${head}<div class="pr" style="grid-template-columns:repeat(28,1fr)">${notes}</div><div style="color:var(--text-3);font-size:11px;margin-top:8px">${has(m, 'song') ? 'D minor · 92 BPM' : 'Detected key and tempo'} · ${fmt(m.moments[0]?.t || 0)}–${fmt((m.moments[0]?.t || 0) + 14)} · 14 notes</div></div>`;
     }
     case 'stem': case 'audio': case 'clips': {
       const bars = Array.from({ length: 60 }, (_, i) => `<span style="height:${6 + Math.abs(Math.sin(i * 0.6) * 26 + Math.sin(i * 1.7) * 8)}px"></span>`).join('');
@@ -885,9 +1060,9 @@ function previewFor(key, m) {
     case 'lyrics':
       return `<div class="preview mono">${head}${esc(m.moments.map(k => k.label.replace(/[“”]/g, '')).join('\n') || 'la la la, la la')}\n…</div>`;
     case 'quotes': case 'csv': case 'table':
-      return `<div class="preview">${head}<table><tr><th>${key === 'table' ? 'Decision' : 'Time'}</th><th>${key === 'table' ? 'Owner' : 'Quote'}</th></tr>${m.moments.map(k => `<tr><td>${key === 'table' ? esc(k.label) : fmt(k.t)}</td><td>${key === 'table' ? esc(m.tags[0] || 'You') : esc(k.label)}</td></tr>`).join('')}</table></div>`;
+      return `<div class="preview">${head}<table><tr><th>${key === 'table' ? 'Decision' : 'Time'}</th><th>${key === 'table' ? 'Owner' : 'Quote'}</th></tr>${m.moments.map(k => `<tr><td>${key === 'table' ? esc(k.label) : fmt(k.t)}</td><td>${key === 'table' ? esc(peopleIn(m)[0] || 'You') : esc(k.label)}</td></tr>`).join('')}</table></div>`;
     case 'email': case 'message': {
-      const who = m.tags.find(t => /^[A-Z][a-z]+$/.test(t)) || 'there';
+      const who = peopleIn(m)[0] || 'there';
       return `<div class="preview">${key === 'email' ? `<div style="color:var(--text-3);font-size:11px;margin-bottom:6px">To: ${esc(who)} · Subject: Following up on ${esc(m.title)}</div>` : ''}Hi ${esc(who)}, ${key === 'email' ? 'following up on our conversation. ' : ''}${esc(m.summary.split('. ').slice(0, key === 'email' ? 2 : 1).join('. '))}.${openItems.length ? ` I will ${esc(openItems[0].text.charAt(0).toLowerCase() + openItems[0].text.slice(1))}.` : ''}</div>`;
     }
     case 'sheet': {
@@ -907,7 +1082,7 @@ function previewFor(key, m) {
     case 'pdf':
       return `<div class="preview">${head}<div style="font-weight:600">${esc(m.title)}</div><div style="color:var(--text-2);font-size:12px;margin-top:4px">${esc(m.summary)}</div><div style="color:var(--text-3);font-size:11px;margin-top:8px">1 page</div></div>`;
     default: // notes, insights, markdown, text
-      return `<div class="preview mono">${head}# ${esc(m.title)}\n${esc(when(m.createdAt))}\n\n${esc(m.summary)}\n${m.moments.length ? `\n## Key moments\n${m.moments.map(k => `- ${fmt(k.t)} ${esc(k.label)}`).join('\n')}` : ''}${openItems.length ? `\n\n## ${m.category === 'meeting' ? 'Action items' : 'To do'}\n${openItems.map(i => `- [ ] ${esc(i.text)}`).join('\n')}` : ''}</div>`;
+      return `<div class="preview mono">${head}# ${esc(m.title)}\n${esc(when(m.createdAt))}\n\n${esc(m.summary)}\n${m.moments.length ? `\n## Key moments\n${m.moments.map(k => `- ${fmt(k.t)} ${esc(k.label)}`).join('\n')}` : ''}${openItems.length ? `\n\n## ${has(m, 'meeting') ? 'Action items' : 'To do'}\n${openItems.map(i => `- [ ] ${esc(i.text)}`).join('\n')}` : ''}</div>`;
   }
 }
 
@@ -976,11 +1151,11 @@ function tickRecording() {
 }
 
 const recordedScripts = [
-  { title: 'Verse idea over the new chord loop', category: 'song', tags: ['verse', 'loop'],
+  { title: 'Verse idea over the new chord loop', tags: ['song'],
     summary: 'A half-sung verse melody over the four-chord loop from yesterday. The second line lands nicely; the first still feels rushed.',
     moments: [ { f: 0.25, label: 'The second line, the one that works' }, { f: 0.8, label: 'Trying a slower first line' } ],
     items: [ { kind: 'revisit', text: 'Fix the first line, keep the second' } ] },
-  { title: 'After the design sync', category: 'meeting', tags: ['design', 'sync'],
+  { title: 'After the design sync', tags: ['meeting'],
     summary: 'The team agreed to move the settings menu into the sidebar. You promised to write up the decision and send Alex the mockup link.',
     moments: [ { f: 0.3, label: 'Decision: settings goes in the sidebar' }, { f: 0.75, label: 'Alex asks for the mockup link' } ],
     items: [ { kind: 'action', text: 'Write up the settings decision' }, { kind: 'action', text: 'Send Alex the mockup link' } ] },
@@ -997,12 +1172,12 @@ function stopRecording() {
 
 // Shared mock enrichment for recorded and imported memos.
 function ingest({ title, duration, createdAt, src, script }) {
-  const memo = { id: 'u' + Date.now() + Math.random().toString(36).slice(2, 6), title, processing: true, category: 'note', tags: [], duration, createdAt, summary: '', moments: [], items: [], src };
+  const memo = { id: 'u' + Date.now() + Math.random().toString(36).slice(2, 6), title, processing: true, tags: [], duration, createdAt, summary: '', moments: [], items: [], src };
   state.memos.unshift(memo); state.selectedId = memo.id; state.filter = 'all'; render();
   setTimeout(() => {
     if (script) {
       Object.assign(memo, {
-        processing: false, title: script.title, category: script.category, tags: script.tags, summary: script.summary,
+        processing: false, title: script.title, tags: script.tags, summary: script.summary,
         moments: script.moments.map(k => ({ t: Math.round(k.f * duration), label: k.label })),
         items: script.items.map((i, n) => ({ id: 'i' + Date.now() + n, ...i, done: false })),
       });
@@ -1011,7 +1186,7 @@ function ingest({ title, duration, createdAt, src, script }) {
       Object.assign(memo, {
         processing: false,
         title: base.match(/^new recording/i) ? 'Untitled thought, worth a listen' : base.charAt(0).toUpperCase() + base.slice(1),
-        tags: ['imported'],
+        tags: ['note'],
         summary: 'This is a draft demo, so the AI layer is simulated. A real build would listen to this recording and write a two-sentence summary here, pick out the moments worth jumping to, and list anything you asked yourself to do.',
         moments: duration > 20 ? [ { t: Math.round(duration * 0.15), label: 'First idea introduced' }, { t: Math.round(duration * 0.62), label: 'The part you’d want to hear again' } ] : [],
         items: duration > 20 ? [ { id: 'i' + Date.now(), kind: 'revisit', text: 'Come back to this one', done: false } ] : [],
